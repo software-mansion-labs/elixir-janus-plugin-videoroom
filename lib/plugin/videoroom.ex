@@ -31,8 +31,8 @@ defmodule Janus.Plugin.VideoRoom do
     :require_e2ee
   ]
 
-  def create_room(room_name, room_properties, connection, session_id, handle_id) do
-    message = new_room_message(room_name, room_properties, session_id, handle_id)
+  def create_room(room_name, room_properties, connection, session_id, handle_id, admin_key \\ nil) do
+    message = new_room_message(room_name, room_properties, session_id, handle_id, admin_key)
 
     case Connection.call(connection, message) do
       {:ok, %{"videoroom" => "created", "room" => id}} ->
@@ -46,10 +46,11 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
-  defp new_room_message(room_id, room_properties, session_id, handle_id) do
+  defp new_room_message(room_id, room_properties, session_id, handle_id, admin_key) do
     room_properties =
       room_properties
       |> Map.from_struct()
+      |> Map.put(:admin_key, admin_key)
       |> Enum.filter(fn {_key, value} -> value != nil end)
       |> Enum.into(%{})
 
