@@ -1,6 +1,13 @@
 defmodule Janus.Plugin.VideoRoom do
   alias Janus.Session
 
+  @admin_key :admin_key
+  @secret_key :secret
+
+  @no_such_room_error 426
+  @room_already_exists_error 427
+  @no_such_feed_error 428
+
   defstruct [
     :description,
     :is_private,
@@ -31,13 +38,26 @@ defmodule Janus.Plugin.VideoRoom do
     :require_e2ee
   ]
 
-  @admin_key :admin_key
-  @secret_key :secret
+  @type room_id :: String.t()
+  @type room :: map
+  @type room_properties :: struct
+  @type handle_id :: String.t()
+  @type admin_key :: String.t() | nil
+  @type room_secret :: String.t() | nil
 
-  @no_such_room_error 426
-  @room_already_exists_error 427
-  @no_such_feed_error 428
+  @type action :: String.t()
+  @type allowed :: list(String.t())
 
+  @type participant :: map
+
+  @spec create_room(
+          Janus.Session.t(),
+          room_id,
+          room_properties,
+          handle_id,
+          admin_key,
+          room_secret
+        ) :: {:ok, String.t()} | {:error, any}
   def create_room(
         session,
         room_id,
@@ -46,10 +66,9 @@ defmodule Janus.Plugin.VideoRoom do
         admin_key \\ nil,
         room_secret \\ nil
       ) do
-    message =
-      configure(room_id, room_properties, handle_id, admin_key, room_secret, "create")
+    message = configure(room_id, room_properties, handle_id, admin_key, room_secret, "create")
 
-    case Session.execute_request(session, message)  do
+    case Session.execute_request(session, message) do
       {:ok, %{"videoroom" => "created", "room" => id}} ->
         {:ok, id}
 
@@ -61,6 +80,8 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  @spec edit(Janus.Session.t(), room_id, room_properties, handle_id, room_secret) ::
+          {:ok, room_id} | {:error, any}
   def edit(
         session,
         room_id,
@@ -70,7 +91,8 @@ defmodule Janus.Plugin.VideoRoom do
       ) do
     message = configure(room_id, room_properties, handle_id, nil, room_secret, "edit")
 
-    with {:ok, %{"videoroom" => "edited", "room" => id}} <- Session.execute_request(session, message) do
+    with {:ok, %{"videoroom" => "edited", "room" => id}} <-
+           Session.execute_request(session, message) do
       {:ok, id}
     else
       {:ok, %{"error" => _message, "error_code" => @no_such_room_error, "videoroom" => "event"}} ->
@@ -98,6 +120,8 @@ defmodule Janus.Plugin.VideoRoom do
     |> new_janus_message(handle_id)
   end
 
+  @spec destroy(Janus.Session.t(), room_id, handle_id, room_secret) ::
+          {:ok, room_id} | {:error, any}
   def destroy(session, room_id, handle_id, room_secret \\ nil) do
     message =
       %{room: room_id, request: "destroy"}
@@ -116,6 +140,7 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  @spec exists(Janus.Session.t(), room_id, handle_id) :: {:ok, boolean} | {:error, any}
   def exists(session, room_id, handle_id) do
     message =
       %{room: room_id, request: "exists"}
@@ -124,9 +149,12 @@ defmodule Janus.Plugin.VideoRoom do
     with {:ok, %{"videoroom" => "success", "room" => ^room_id, "exists" => exists}} <-
            Session.execute_request(session, message) do
       {:ok, exists}
+    else
+      {:error, _reason} = error -> error
     end
   end
 
+  @spec list(Janus.Session.t(), handle_id) :: {:ok, list(room)} | {:error, any}
   def list(session, handle_id) do
     message =
       %{request: "list"}
@@ -135,9 +163,13 @@ defmodule Janus.Plugin.VideoRoom do
     with {:ok, %{"videoroom" => "success", "rooms" => rooms}} <-
            Session.execute_request(session, message) do
       {:ok, rooms}
+    else
+      {:error, _reason} = error -> error
     end
   end
 
+  @spec allowed(Janus.Session.t(), room_id, action, allowed, handle_id, room_secret) ::
+          {:ok, allowed} | {:error, any}
   def allowed(
         session,
         room_id,
@@ -167,6 +199,8 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  @spec kick(Janus.Session.t(), room_id, user_id :: String.t(), handle_id, room_secret) ::
+          :ok | {:error, any}
   def kick(session, room_id, user_id, handle_id, room_secret \\ nil) do
     message =
       %{request: "kick", id: user_id, room: room_id}
@@ -187,6 +221,8 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  @spec list_participants(Janus.Session.t(), room_id, handle_id) ::
+          {:ok, list(participant)} | {:error, any}
   def list_participants(session, room_id, handle_id) do
     message =
       %{request: "listparticipants", room: room_id}
