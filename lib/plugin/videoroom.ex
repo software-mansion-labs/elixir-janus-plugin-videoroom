@@ -1,5 +1,6 @@
 defmodule Janus.Plugin.VideoRoom do
   alias Janus.Session
+  alias Janus.Plugin.VideoRoom.Errors
 
   @admin_key :admin_key
   @secret_key :secret
@@ -73,7 +74,7 @@ defmodule Janus.Plugin.VideoRoom do
         {:ok, id}
 
       {:ok, %{"error_code" => @room_already_exists_error, "videoroom" => "event"}} ->
-        {:error, :already_exists}
+        {:error, Errors.error(@room_already_exists_error)}
 
       {:error, reason} ->
         {:error, reason}
@@ -96,7 +97,7 @@ defmodule Janus.Plugin.VideoRoom do
       {:ok, id}
     else
       {:ok, %{"error" => _message, "error_code" => @no_such_room_error, "videoroom" => "event"}} ->
-        {:error, :no_such_room}
+        {:error, Errors.error(@no_such_room_error)}
 
       {:error, reason} ->
         {:error, reason}
@@ -133,7 +134,7 @@ defmodule Janus.Plugin.VideoRoom do
       {:ok, id}
     else
       {:ok, %{"error" => _message, "error_code" => @no_such_room_error, "videoroom" => "event"}} ->
-        {:error, :no_such_room}
+        {:error, Errors.error(@no_such_room_error)}
 
       {:error, reason} ->
         {:error, reason}
@@ -192,7 +193,7 @@ defmodule Janus.Plugin.VideoRoom do
       {:ok, resulting_allowed_list}
     else
       {:ok, %{"error" => _message, "error_code" => @no_such_room_error, "videoroom" => "event"}} ->
-        {:error, :no_such_room}
+        {:error, Errors.error(@no_such_room_error)}
 
       {:error, reason} ->
         {:error, reason}
@@ -211,10 +212,11 @@ defmodule Janus.Plugin.VideoRoom do
       :ok
     else
       {:ok, %{"error" => _message, "error_code" => @no_such_feed_error, "videoroom" => "event"}} ->
-        {:error, :no_such_user}
+        # previously :no_such_user
+        {:error, Errors.error(@no_such_feed_error)}
 
       {:ok, %{"error" => _message, "error_code" => @no_such_room_error, "videoroom" => "event"}} ->
-        {:error, :no_such_room}
+        {:error, Errors.error(@no_such_room_error)}
 
       {:error, reason} ->
         {:error, reason}
@@ -231,14 +233,14 @@ defmodule Janus.Plugin.VideoRoom do
     with {:ok,
           %{
             "videoroom" => "participants",
-            room: ^room_id,
-            participants: participants
+            "room" => ^room_id,
+            "participants" => participants
           }} <-
            Session.execute_request(session, message) do
       {:ok, participants}
     else
       {:ok, %{"error" => _message, "error_code" => @no_such_room_error, "videoroom" => "event"}} ->
-        {:error, :no_such_room}
+        {:error, Errors.error(@no_such_room_error)}
 
       {:error, reason} ->
         {:error, reason}
