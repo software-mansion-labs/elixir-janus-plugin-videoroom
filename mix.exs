@@ -11,17 +11,15 @@ defmodule ElixirJanusPluginVideoroom.MixProject do
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       extra_applications: [:logger]
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:elixir_janus, github: "software-mansion-labs/elixir-janus"},
+      {:elixir_janus, github: "software-mansion-labs/elixir-janus", branch: "feat/session"},
       {:jason, "~> 1.0"},
       {:mock, "~> 0.3.0", only: :test}
     ]
