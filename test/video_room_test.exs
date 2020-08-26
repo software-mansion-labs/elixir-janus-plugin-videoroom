@@ -61,7 +61,7 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test_no_such_room(&VideoRoom.edit/5, [
+    test_no_such_room_error(&VideoRoom.edit/5, [
       Janus.Session,
       @room_name,
       %VideoRoom{},
@@ -91,7 +91,7 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test_no_such_room(&VideoRoom.destroy/4, [Janus.Session, @room_name, @handle_id, nil])
+    test_no_such_room_error(&VideoRoom.destroy/4, [Janus.Session, @room_name, @handle_id, nil])
     test_connection_error(&VideoRoom.destroy/4, [Janus.Session, @room_name, @handle_id, nil])
   end
 
@@ -147,7 +147,7 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test_no_such_room(&VideoRoom.allowed/6, [
+    test_no_such_room_error(&VideoRoom.allowed/6, [
       Janus.Session,
       @room_name,
       "add",
@@ -191,7 +191,7 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test_no_such_room(&VideoRoom.kick/5, [
+    test_no_such_room_error(&VideoRoom.kick/5, [
       Janus.Session,
       @room_name,
       "user_id",
@@ -227,7 +227,7 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test_no_such_room(&VideoRoom.list_participants/3, [Janus.Session, @room_name, @handle_id])
+    test_no_such_room_error(&VideoRoom.list_participants/3, [Janus.Session, @room_name, @handle_id])
     test_connection_error(&VideoRoom.list_participants/3, [Janus.Session, @room_name, @handle_id])
   end
 end

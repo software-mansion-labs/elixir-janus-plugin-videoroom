@@ -23,7 +23,7 @@ defmodule VideoRoomTest.Helper do
     end
   end
 
-  defmacro test_no_such_room(fun, args) do
+  defmacro test_no_such_room_error(fun, args) do
     quote do
       test "returns an error when room does not exist" do
         code = Errors.code(:no_such_room)

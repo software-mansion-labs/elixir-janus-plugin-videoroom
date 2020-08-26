@@ -1,4 +1,7 @@
 defmodule Janus.Plugin.VideoRoom do
+  @moduledoc """
+  Provides abstraction layer for communicating with Janus's VideoRoom plugin.
+  """
   alias Janus.Session
   alias Janus.Plugin.VideoRoom.Errors
 
@@ -51,6 +54,21 @@ defmodule Janus.Plugin.VideoRoom do
 
   @type participant :: map
 
+  @doc """
+  Sends reqeuest to create a new room.
+
+  ## Arguments
+  * `session` - valid `Janus.Session` process to send request through
+  * `room_id` - new room's id, if set to nil gateway will create one
+  * `room_properties` - map containing necessary information about room
+  * `handle_id` - an id of caller's handle
+  * `admin_key` - optional admin key if gateway requires it
+  * `room_secret` - optional room secret when requested room has to be protected
+
+  ## Returns
+  On success: `{:ok, room_id}`.
+  On error: `{:error, reason}`.
+  """
   @spec create_room(
           Janus.Session.t(),
           room_id,
@@ -81,6 +99,20 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  @doc """
+  Sends reqeuest to edit given room.
+
+  ## Arguments
+  * `session` - valid `Janus.Session` process to send request through
+  * `room_id` - an id of targeted room
+  * `room_properties` - map containing room information to be updated
+  * `handle_id` - an id of caller's handle
+  * `room_secret` - optional room secret when requested room is protected
+
+  ## Returns
+  On success: `{:ok, room_id}`.
+  On error: `{:error, reason}`.
+  """
   @spec edit(Janus.Session.t(), room_id, room_properties, handle_id, room_secret) ::
           {:ok, room_id} | {:error, any}
   def edit(
@@ -121,6 +153,19 @@ defmodule Janus.Plugin.VideoRoom do
     |> new_janus_message(handle_id)
   end
 
+  @doc """
+  Sends request to destroy given room.
+
+  ## Arguments
+  * `session` - valid `Janus.Session` process to send request through
+  * `room_id` - an id of targeted room
+  * `handle_id` - an id of caller's handle
+  * `room_secret` - optional room secret when requested room is protected
+
+  ## Returns
+  On success: `{:ok, room_id}`.
+  On error: `{:error, reason}`.
+  """
   @spec destroy(Janus.Session.t(), room_id, handle_id, room_secret) ::
           {:ok, room_id} | {:error, any}
   def destroy(session, room_id, handle_id, room_secret \\ nil) do
@@ -141,6 +186,18 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  @doc """
+  Sends request to check if given room exists.
+
+  ## Arguments
+  * `session` - valid `Janus.Session` process to send request through
+  * `room_id` - an id of querried room
+  * `handle_id` - an id of caller's handle
+
+  ## Returns
+  On success: `{:ok, exists}`.
+  On error: `{:error, reason}`.
+  """
   @spec exists(Janus.Session.t(), room_id, handle_id) :: {:ok, boolean} | {:error, any}
   def exists(session, room_id, handle_id) do
     message =
@@ -155,6 +212,17 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  @doc """
+  Sends request to list all existing rooms.
+
+  ## Arguments
+  * `session` - valid `Janus.Session` process to send request through
+  * `handle_id` - an id of caller's handle
+
+  ## Returns
+  On success: `{:ok, rooms}`.
+  On error: `{:error, reason}`.
+  """
   @spec list(Janus.Session.t(), handle_id) :: {:ok, list(room)} | {:error, any}
   def list(session, handle_id) do
     message =
@@ -169,6 +237,21 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  @doc """
+  Sends request to modify list of people allowed into given room.
+
+  ## Arguments
+  * `session` - valid `Janus.Session` process to send request through
+  * `room_id` - id of targeted room
+  * `action` - one of "enable|disable|add|remove"
+  * `allowed` - list of tokens
+  * `handle_id` - id of caller's handle
+  * `room_secret` - optional room secret when requested room is protected
+
+  ## Returns
+  On success: `{:ok, allowed}` where `allowed` is an updated list of allowed tokens
+  On error: `{:error, reason}`.
+  """
   @spec allowed(Janus.Session.t(), room_id, action, allowed, handle_id, room_secret) ::
           {:ok, allowed} | {:error, any}
   def allowed(
@@ -200,6 +283,20 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  @doc """
+  Sends request to kick given user out of the room.
+
+  ## Arguments
+  * `session` - valid `Janus.Session` process to send request through
+  * `room_id` - id of targeted room
+  * `user_id` - id of user to kick
+  * `handle_id` - id of caller's handle
+  * `room_secret` - optional room secret when requested room is protected
+
+  ## Returns
+  On success: `:ok`.
+  On error: `{:error, reason}`.
+  """
   @spec kick(Janus.Session.t(), room_id, user_id :: String.t(), handle_id, room_secret) ::
           :ok | {:error, any}
   def kick(session, room_id, user_id, handle_id, room_secret \\ nil) do
@@ -223,6 +320,18 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  @doc """
+  Sends request to list participants of given room.
+
+  ## Arguments
+  * `session` - valid `Janus.Session` process to send request through
+  * `room_id` - id of targeted room
+  * `handle_id` - id of caller's handle
+
+  ## Returns
+  On success: `{:ok, participants}`.
+  On error: `{:error, reason}`.
+  """
   @spec list_participants(Janus.Session.t(), room_id, handle_id) ::
           {:ok, list(participant)} | {:error, any}
   def list_participants(session, room_id, handle_id) do

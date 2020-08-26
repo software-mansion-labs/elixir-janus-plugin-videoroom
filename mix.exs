@@ -24,9 +24,10 @@ defmodule ElixirJanusPluginVideoroom.MixProject do
 
   defp deps do
     [
-      {:elixir_janus, github: "software-mansion-labs/elixir-janus", branch: "feat/session"},
+      {:elixir_janus, github: "software-mansion-labs/elixir-janus"},
       {:jason, "~> 1.0"},
-      {:mock, "~> 0.3.0", only: :test}
+      {:mock, "~> 0.3.0", only: :test},
+      {:ex_doc, "~> 0.22", only: :dev, runtime: false}
     ]
   end
 end
