@@ -66,8 +66,8 @@ defmodule Janus.Plugin.VideoRoom do
   * `room_secret` - optional room secret when requested room has to be protected
 
   ## Returns
-  On success: `{:ok, room_id}`.
-  On error: `{:error, reason}`.
+  * on success: `{:ok, room_id}`.
+  * on error: `{:error, reason}`.
   """
   @spec create_room(
           Janus.Session.t(),
@@ -110,8 +110,8 @@ defmodule Janus.Plugin.VideoRoom do
   * `room_secret` - optional room secret when requested room is protected
 
   ## Returns
-  On success: `{:ok, room_id}`.
-  On error: `{:error, reason}`.
+  * on success: `{:ok, room_id}`.
+  * on error: `{:error, reason}`.
   """
   @spec edit(Janus.Session.t(), room_id, room_properties, handle_id, room_secret) ::
           {:ok, room_id} | {:error, any}
@@ -163,8 +163,8 @@ defmodule Janus.Plugin.VideoRoom do
   * `room_secret` - optional room secret when requested room is protected
 
   ## Returns
-  On success: `{:ok, room_id}`.
-  On error: `{:error, reason}`.
+  * on success: `{:ok, room_id}`.
+  * on error: `{:error, reason}`.
   """
   @spec destroy(Janus.Session.t(), room_id, handle_id, room_secret) ::
           {:ok, room_id} | {:error, any}
@@ -195,8 +195,8 @@ defmodule Janus.Plugin.VideoRoom do
   * `handle_id` - an id of caller's handle
 
   ## Returns
-  On success: `{:ok, exists}`.
-  On error: `{:error, reason}`.
+  * on success: `{:ok, exists}`.
+  * on error: `{:error, reason}`.
   """
   @spec exists(Janus.Session.t(), room_id, handle_id) :: {:ok, boolean} | {:error, any}
   def exists(session, room_id, handle_id) do
@@ -220,8 +220,8 @@ defmodule Janus.Plugin.VideoRoom do
   * `handle_id` - an id of caller's handle
 
   ## Returns
-  On success: `{:ok, rooms}`.
-  On error: `{:error, reason}`.
+  * on success: `{:ok, rooms}`.
+  * on error: `{:error, reason}`.
   """
   @spec list(Janus.Session.t(), handle_id) :: {:ok, list(room)} | {:error, any}
   def list(session, handle_id) do
@@ -249,8 +249,8 @@ defmodule Janus.Plugin.VideoRoom do
   * `room_secret` - optional room secret when requested room is protected
 
   ## Returns
-  On success: `{:ok, allowed}` where `allowed` is an updated list of allowed tokens
-  On error: `{:error, reason}`.
+  * on success: `{:ok, allowed}` where `allowed` is an updated list of allowed tokens
+  * on error: `{:error, reason}`.
   """
   @spec allowed(Janus.Session.t(), room_id, action, allowed, handle_id, room_secret) ::
           {:ok, allowed} | {:error, any}
@@ -294,8 +294,8 @@ defmodule Janus.Plugin.VideoRoom do
   * `room_secret` - optional room secret when requested room is protected
 
   ## Returns
-  On success: `:ok`.
-  On error: `{:error, reason}`.
+  * on success: `:ok`.
+  * on error: `{:error, reason}`.
   """
   @spec kick(Janus.Session.t(), room_id, user_id :: String.t(), handle_id, room_secret) ::
           :ok | {:error, any}
@@ -329,8 +329,8 @@ defmodule Janus.Plugin.VideoRoom do
   * `handle_id` - id of caller's handle
 
   ## Returns
-  On success: `{:ok, participants}`.
-  On error: `{:error, reason}`.
+  * on success: `{:ok, participants}`.
+  * on error: `{:error, reason}`.
   """
   @spec list_participants(Janus.Session.t(), room_id, handle_id) ::
           {:ok, list(participant)} | {:error, any}
