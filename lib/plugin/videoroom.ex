@@ -78,7 +78,6 @@ defmodule Janus.Plugin.VideoRoom do
           require_e2ee: boolean() | nil
         }
 
-
   @type room_id :: String.t()
   @type room :: map
   @type room_properties :: struct
@@ -183,6 +182,7 @@ defmodule Janus.Plugin.VideoRoom do
       |> Map.update!(:videocodec, &listify_codec/1)
       |> Enum.filter(fn {_key, value} -> value != nil end)
       |> Enum.into(%{})
+
     %{
       request: request,
       room: room_id
