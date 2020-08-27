@@ -33,7 +33,7 @@ defmodule VideoRoomTest.Helper do
           execute_request: fn _, _message ->
             {:ok, error_message(code)}
           end do
-          assert {:error, Errors.error(code)} == apply(unquote(fun), unquote(args))
+          assert Errors.error(code) == apply(unquote(fun), unquote(args))
         end
       end
     end

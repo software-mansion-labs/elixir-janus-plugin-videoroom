@@ -33,7 +33,7 @@ defmodule Janus.Plugin.VideoRoomTest do
         execute_request: fn _, _message ->
           {:ok, error_message(code)}
         end do
-        assert {:error, Errors.error(code)} ==
+        assert Errors.error(code) ==
                  VideoRoom.create_room(Janus.Session, @room_name, %VideoRoom{}, nil, nil)
       end
     end
@@ -186,7 +186,7 @@ defmodule Janus.Plugin.VideoRoomTest do
         execute_request: fn _, _message ->
           {:ok, error_message(code)}
         end do
-        assert {:error, Errors.error(code)} ==
+        assert Errors.error(code) ==
                  VideoRoom.kick(Janus.Session, @room_name, "user_id", @handle_id, nil)
       end
     end

@@ -8,10 +8,6 @@ defmodule Janus.Plugin.VideoRoom do
   @admin_key :admin_key
   @secret_key :secret
 
-  @no_such_room_error 426
-  @room_already_exists_error 427
-  @no_such_feed_error 428
-
   defstruct [
     :description,
     :is_private,
@@ -90,7 +86,7 @@ defmodule Janus.Plugin.VideoRoom do
   @type participant :: map
 
   @doc """
-  Sends reqeuest to create a new room.
+  Sends request to create a new room.
 
   ## Arguments
   * `session` - valid `Janus.Session` process to send request through
@@ -118,20 +114,15 @@ defmodule Janus.Plugin.VideoRoom do
       ) do
     message = configure(room_id, room_properties, handle_id, admin_key, room_secret, "create")
 
-    case Session.execute_request(session, message) do
-      {:ok, %{"videoroom" => "created", "room" => id}} ->
-        {:ok, id}
-
-      {:ok, %{"error_code" => @room_already_exists_error, "videoroom" => "event"}} ->
-        {:error, Errors.error(@room_already_exists_error)}
-
-      {:error, reason} ->
-        {:error, reason}
+    with {:ok, %{"videoroom" => "created", "room" => id}} <-
+           Session.execute_request(session, message) do
+      {:ok, id}
     end
+    |> handle_videoroom_error()
   end
 
   @doc """
-  Sends reqeuest to edit given room.
+  Sends request to edit given room.
 
   ## Arguments
   * `session` - valid `Janus.Session` process to send request through
@@ -154,13 +145,8 @@ defmodule Janus.Plugin.VideoRoom do
     with {:ok, %{"videoroom" => "edited", "room" => id}} <-
            Session.execute_request(session, message) do
       {:ok, id}
-    else
-      {:ok, %{"error" => _message, "error_code" => @no_such_room_error, "videoroom" => "event"}} ->
-        {:error, Errors.error(@no_such_room_error)}
-
-      {:error, reason} ->
-        {:error, reason}
     end
+    |> handle_videoroom_error()
   end
 
   defp configure(room_id, room_properties, handle_id, admin_key, room_secret, request) do
@@ -206,13 +192,8 @@ defmodule Janus.Plugin.VideoRoom do
     with {:ok, %{"videoroom" => "destroyed", "room" => id}} <-
            Session.execute_request(session, message) do
       {:ok, id}
-    else
-      {:ok, %{"error" => _message, "error_code" => @no_such_room_error, "videoroom" => "event"}} ->
-        {:error, Errors.error(@no_such_room_error)}
-
-      {:error, reason} ->
-        {:error, reason}
     end
+    |> handle_videoroom_error()
   end
 
   @doc """
@@ -220,7 +201,7 @@ defmodule Janus.Plugin.VideoRoom do
 
   ## Arguments
   * `session` - valid `Janus.Session` process to send request through
-  * `room_id` - an id of querried room
+  * `room_id` - an id of queried room
   * `handle_id` - an id of caller's handle
   """
   @spec exists(Janus.Session.t(), room_id, handle_id) :: {:ok, boolean} | {:error, any}
@@ -232,9 +213,8 @@ defmodule Janus.Plugin.VideoRoom do
     with {:ok, %{"videoroom" => "success", "room" => ^room_id, "exists" => exists}} <-
            Session.execute_request(session, message) do
       {:ok, exists}
-    else
-      {:error, _reason} = error -> error
     end
+    |> handle_videoroom_error()
   end
 
   @doc """
@@ -253,9 +233,8 @@ defmodule Janus.Plugin.VideoRoom do
     with {:ok, %{"videoroom" => "success", "rooms" => rooms}} <-
            Session.execute_request(session, message) do
       {:ok, rooms}
-    else
-      {:error, _reason} = error -> error
     end
+    |> handle_videoroom_error()
   end
 
   @doc """
@@ -270,7 +249,7 @@ defmodule Janus.Plugin.VideoRoom do
   * `room_secret` - optional room secret when requested room is protected
 
   ## Returns
-  on succes returns tuple `{:ok, allowed}` where `allowed` is an updated list of users' tokens allowed into requested room
+  on success returns tuple `{:ok, allowed}` where `allowed` is an updated list of users' tokens allowed into requested room
   """
   @spec allowed(Janus.Session.t(), room_id, action, allowed, handle_id, room_secret) ::
           {:ok, allowed} | {:error, any}
@@ -294,13 +273,8 @@ defmodule Janus.Plugin.VideoRoom do
             "allowed" => resulting_allowed_list
           }} <- Session.execute_request(session, message) do
       {:ok, resulting_allowed_list}
-    else
-      {:ok, %{"error" => _message, "error_code" => @no_such_room_error, "videoroom" => "event"}} ->
-        {:error, Errors.error(@no_such_room_error)}
-
-      {:error, reason} ->
-        {:error, reason}
     end
+    |> handle_videoroom_error()
   end
 
   @doc """
@@ -323,17 +297,8 @@ defmodule Janus.Plugin.VideoRoom do
 
     with {:ok, %{"videoroom" => "success"}} <- Session.execute_request(session, message) do
       :ok
-    else
-      {:ok, %{"error" => _message, "error_code" => @no_such_feed_error, "videoroom" => "event"}} ->
-        # previously :no_such_user
-        {:error, Errors.error(@no_such_feed_error)}
-
-      {:ok, %{"error" => _message, "error_code" => @no_such_room_error, "videoroom" => "event"}} ->
-        {:error, Errors.error(@no_such_room_error)}
-
-      {:error, reason} ->
-        {:error, reason}
     end
+    |> handle_videoroom_error()
   end
 
   @doc """
@@ -359,13 +324,8 @@ defmodule Janus.Plugin.VideoRoom do
           }} <-
            Session.execute_request(session, message) do
       {:ok, participants}
-    else
-      {:ok, %{"error" => _message, "error_code" => @no_such_room_error, "videoroom" => "event"}} ->
-        {:error, Errors.error(@no_such_room_error)}
-
-      {:error, reason} ->
-        {:error, reason}
     end
+    |> handle_videoroom_error()
   end
 
   defp new_janus_message(body, handle_id) do
@@ -375,6 +335,15 @@ defmodule Janus.Plugin.VideoRoom do
       body: body
     }
   end
+
+  defp handle_videoroom_error({:ok, %{"error" => _message, "error_code" => code, "videoroom" => "event"}}) do
+    Errors.error(code)
+  end
+
+  defp handle_videoroom_error({:ok, _} = result), do: result
+  defp handle_videoroom_error(:ok), do: :ok
+  defp handle_videoroom_error({:error, _reason} = error), do: error
+
 
   defp put_if_not_nil(map, key, value)
   defp put_if_not_nil(map, _key, nil), do: map
