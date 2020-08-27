@@ -47,7 +47,7 @@ defmodule Janus.Plugin.VideoRoom.Mixfile do
       maintainers: ["ElixirJanus Team"],
       licenses: ["Apache 2.0"],
       links: %{
-        "GitHub" => @github_url,
+        "GitHub" => @github_url
       }
     ]
   end
@@ -56,7 +56,7 @@ defmodule Janus.Plugin.VideoRoom.Mixfile do
     [
       main: "readme",
       extras: ["README.md", "LICENSE"],
-      source_ref: "v#{@version}",
+      source_ref: "v#{@version}"
     ]
   end
 end
