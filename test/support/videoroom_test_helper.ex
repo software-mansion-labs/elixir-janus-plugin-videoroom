@@ -13,6 +13,7 @@ defmodule VideoRoomTest.Helper do
     quote do
       test "returns an error on connection error" do
         error = {:error, :important_error}
+
         with_mock Janus.Session,
           execute_request: fn _, _message ->
             error
@@ -27,6 +28,7 @@ defmodule VideoRoomTest.Helper do
     quote do
       test "returns an error when room does not exist" do
         code = Errors.code(:no_such_room)
+
         with_mock Janus.Session,
           execute_request: fn _, _message ->
             {:ok, error_message(code)}

@@ -1,5 +1,4 @@
 defmodule Janus.Plugin.VideoRoom.Errors do
-
   @errors %{
     # code to atom
     426 => :no_such_room,
@@ -8,7 +7,7 @@ defmodule Janus.Plugin.VideoRoom.Errors do
     # atom to code
     :no_such_room => 426,
     :room_already_exists => 427,
-    :no_such_feed => 428,
+    :no_such_feed => 428
   }
 
   @spec error(integer()) :: atom()

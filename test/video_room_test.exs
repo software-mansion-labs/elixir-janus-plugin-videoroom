@@ -227,7 +227,12 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test_no_such_room_error(&VideoRoom.list_participants/3, [Janus.Session, @room_name, @handle_id])
+    test_no_such_room_error(&VideoRoom.list_participants/3, [
+      Janus.Session,
+      @room_name,
+      @handle_id
+    ])
+
     test_connection_error(&VideoRoom.list_participants/3, [Janus.Session, @room_name, @handle_id])
   end
 end
