@@ -42,6 +42,43 @@ defmodule Janus.Plugin.VideoRoom do
     :require_e2ee
   ]
 
+  @type audio_codec :: :opus | :g722 | :pcmu | :pcma | :isac32 | :isac16
+  @type video_codec :: :vp8 | :vp9 | :h264 | :av1 | :h265
+  @type t :: %__MODULE__{
+          description: binary() | nil,
+          is_private: boolean() | nil,
+          secret: binary() | nil,
+          pin: binary() | nil,
+          require_pvtid: boolean() | nil,
+          publishers: non_neg_integer() | nil,
+          bitrate: non_neg_integer() | nil,
+          bitrate_cap: boolean() | nil,
+          fir_freq: non_neg_integer() | nil,
+          audiocodec: list(audio_codec) | nil,
+          videocodec: list(video_codec) | nil,
+          vp9_profile: binary() | nil,
+          h264_profile: binary() | nil,
+          opus_fec: boolean() | nil,
+          video_svc: boolean() | nil,
+          audiolevel_ext: boolean() | nil,
+          audiolevel_event: boolean() | nil,
+          audio_active_packets: non_neg_integer() | nil,
+          # Float between 0 and 127
+          # 127 means complete silence
+          # 0 loud
+          # default is 25
+          audio_level_average: float() | nil,
+          videoorient_ext: boolean() | nil,
+          playoutdelay_ext: boolean() | nil,
+          transport_wide_cc_ext: boolean() | nil,
+          record: boolean() | nil,
+          rec_dir: boolean() | nil,
+          lock_record: boolean() | nil,
+          notify_joining: boolean() | nil,
+          require_e2ee: boolean() | nil
+        }
+
+
   @type room_id :: String.t()
   @type room :: map
   @type room_properties :: struct
@@ -142,9 +179,10 @@ defmodule Janus.Plugin.VideoRoom do
       |> Map.from_struct()
       |> Map.put(@admin_key, admin_key)
       |> Map.put(@secret_key, room_secret)
+      |> Map.update!(:audiocodec, &listify_codec/1)
+      |> Map.update!(:videocodec, &listify_codec/1)
       |> Enum.filter(fn {_key, value} -> value != nil end)
       |> Enum.into(%{})
-
     %{
       request: request,
       room: room_id
@@ -152,6 +190,10 @@ defmodule Janus.Plugin.VideoRoom do
     |> Map.merge(room_properties)
     |> new_janus_message(handle_id)
   end
+
+  defp listify_codec(list)
+  defp listify_codec(nil), do: nil
+  defp listify_codec(list), do: Enum.join(list, ",")
 
   @doc """
   Sends request to destroy given room.
