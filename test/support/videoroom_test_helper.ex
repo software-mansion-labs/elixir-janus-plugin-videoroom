@@ -9,10 +9,11 @@ defmodule VideoRoomTest.Helper do
     }
   end
 
-  defmacro test_connection_error(fun, args) do
+  # macro generating test checking that error returned by session was propagated down
+  defmacro test_session_error_propagation(fun, args) do
     quote do
-      test "returns an error on connection error" do
-        error = {:error, :important_error}
+      test "propagate error returned from Session" do
+        error = {:error, :session_error}
 
         with_mock Janus.Session,
           execute_request: fn _, _message ->
@@ -24,10 +25,12 @@ defmodule VideoRoomTest.Helper do
     end
   end
 
-  defmacro test_no_such_room_error(fun, args) do
+  # macro generating test checking if given function returns proper error
+  # when Session returns VideoRoom's plugin error with specified error_code
+  defmacro test_videoroom_plugin_error(error, fun, args) do
     quote do
-      test "returns an error when room does not exist" do
-        code = Errors.code(:no_such_room)
+      test "returns an error on plugin's #{unquote(error)} error message" do
+        code = Errors.code(unquote(error))
 
         with_mock Janus.Session,
           execute_request: fn _, _message ->

@@ -3,7 +3,6 @@ defmodule Janus.Plugin.VideoRoomTest do
   import Mock
   import VideoRoomTest.Helper
   alias Janus.Plugin.VideoRoom
-  alias Janus.Plugin.VideoRoom.Errors
 
   @id 1
   @room_name "room_name"
@@ -26,25 +25,16 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test "returns an error when room already_exists" do
-      code = Errors.code(:room_already_exists)
+    test_videoroom_plugin_error(
+      :room_already_exists,
+      &VideoRoom.create_room/5,
+      [Janus.Session, @room_name, %VideoRoom{}, nil, nil]
+    )
 
-      with_mock Janus.Session,
-        execute_request: fn _, _message ->
-          {:ok, error_message(code)}
-        end do
-        assert Errors.error(code) ==
-                 VideoRoom.create_room(Janus.Session, @room_name, %VideoRoom{}, nil, nil)
-      end
-    end
-
-    test_connection_error(&VideoRoom.create_room/5, [
-      Janus.Session,
-      @room_name,
-      %VideoRoom{},
-      nil,
-      nil
-    ])
+    test_session_error_propagation(
+      &VideoRoom.create_room/5,
+      [Janus.Session, @room_name, %VideoRoom{}, nil, nil]
+    )
   end
 
   describe "edit/5 sends edit room request through connection and" do
@@ -61,21 +51,16 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test_no_such_room_error(&VideoRoom.edit/5, [
-      Janus.Session,
-      @room_name,
-      %VideoRoom{},
-      @handle_id,
-      nil
-    ])
+    test_videoroom_plugin_error(
+      :no_such_room,
+      &VideoRoom.edit/5,
+      [Janus.Session, @room_name, %VideoRoom{}, @handle_id, nil]
+    )
 
-    test_connection_error(&VideoRoom.edit/5, [
-      Janus.Session,
-      @room_name,
-      %VideoRoom{},
-      @handle_id,
-      nil
-    ])
+    test_session_error_propagation(
+      &VideoRoom.edit/5,
+      [Janus.Session, @room_name, %VideoRoom{}, @handle_id, nil]
+    )
   end
 
   describe "destroy/4 sends destroy room request through connection and" do
@@ -91,8 +76,19 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test_no_such_room_error(&VideoRoom.destroy/4, [Janus.Session, @room_name, @handle_id, nil])
-    test_connection_error(&VideoRoom.destroy/4, [Janus.Session, @room_name, @handle_id, nil])
+    test_videoroom_plugin_error(:no_such_room, &VideoRoom.destroy/4, [
+      Janus.Session,
+      @room_name,
+      @handle_id,
+      nil
+    ])
+
+    test_session_error_propagation(&VideoRoom.destroy/4, [
+      Janus.Session,
+      @room_name,
+      @handle_id,
+      nil
+    ])
   end
 
   describe "exists/3 sends request checking if room exists through connection and" do
@@ -107,7 +103,7 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test_connection_error(&VideoRoom.exists/3, [Janus.Session, @room_name, @handle_id])
+    test_session_error_propagation(&VideoRoom.exists/3, [Janus.Session, @room_name, @handle_id])
   end
 
   describe "list/2 sends list rooms request through connection and" do
@@ -123,7 +119,7 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test_connection_error(&VideoRoom.list/2, [Janus.Session, @handle_id])
+    test_session_error_propagation(&VideoRoom.list/2, [Janus.Session, @handle_id])
   end
 
   describe "allowed/6 sends request to updated allowed tokens through connection and" do
@@ -147,7 +143,7 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test_no_such_room_error(&VideoRoom.allowed/6, [
+    test_videoroom_plugin_error(:no_such_room, &VideoRoom.allowed/6, [
       Janus.Session,
       @room_name,
       "add",
@@ -156,7 +152,7 @@ defmodule Janus.Plugin.VideoRoomTest do
       nil
     ])
 
-    test_connection_error(&VideoRoom.allowed/6, [
+    test_session_error_propagation(&VideoRoom.allowed/6, [
       Janus.Session,
       @room_name,
       "add",
@@ -179,19 +175,13 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test "returns error when user has not been found" do
-      code = Errors.code(:no_such_feed)
+    test_videoroom_plugin_error(
+      :no_such_feed,
+      &VideoRoom.kick/5,
+      [Janus.Session, @room_name, "user_id", @handle_id, nil]
+    )
 
-      with_mock Janus.Session,
-        execute_request: fn _, _message ->
-          {:ok, error_message(code)}
-        end do
-        assert Errors.error(code) ==
-                 VideoRoom.kick(Janus.Session, @room_name, "user_id", @handle_id, nil)
-      end
-    end
-
-    test_no_such_room_error(&VideoRoom.kick/5, [
+    test_videoroom_plugin_error(:no_such_room, &VideoRoom.kick/5, [
       Janus.Session,
       @room_name,
       "user_id",
@@ -199,7 +189,7 @@ defmodule Janus.Plugin.VideoRoomTest do
       nil
     ])
 
-    test_connection_error(&VideoRoom.kick/5, [
+    test_session_error_propagation(&VideoRoom.kick/5, [
       Janus.Session,
       @room_name,
       "user_id",
@@ -227,12 +217,16 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test_no_such_room_error(&VideoRoom.list_participants/3, [
+    test_videoroom_plugin_error(:no_such_room, &VideoRoom.list_participants/3, [
       Janus.Session,
       @room_name,
       @handle_id
     ])
 
-    test_connection_error(&VideoRoom.list_participants/3, [Janus.Session, @room_name, @handle_id])
+    test_session_error_propagation(&VideoRoom.list_participants/3, [
+      Janus.Session,
+      @room_name,
+      @handle_id
+    ])
   end
 end
