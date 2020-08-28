@@ -1,6 +1,6 @@
 defmodule Janus.Plugin.VideoRoom do
   @moduledoc """
-  Provides abstraction layer for communicating with Janus's VideoRoom plugin.
+  This module provides an API to manipulate and read properties of Janus Gateway's VideoRoom plugin's rooms.
   """
   alias Janus.Session
   alias Janus.Plugin.VideoRoom.Errors
