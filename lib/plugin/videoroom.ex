@@ -336,14 +336,15 @@ defmodule Janus.Plugin.VideoRoom do
     }
   end
 
-  defp handle_videoroom_error({:ok, %{"error" => _message, "error_code" => code, "videoroom" => "event"}}) do
+  defp handle_videoroom_error(
+         {:ok, %{"error" => _message, "error_code" => code, "videoroom" => "event"}}
+       ) do
     Errors.error(code)
   end
 
   defp handle_videoroom_error({:ok, _} = result), do: result
   defp handle_videoroom_error(:ok), do: :ok
   defp handle_videoroom_error({:error, _reason} = error), do: error
-
 
   defp put_if_not_nil(map, key, value)
   defp put_if_not_nil(map, _key, nil), do: map
