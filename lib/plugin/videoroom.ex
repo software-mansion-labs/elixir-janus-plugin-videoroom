@@ -118,7 +118,7 @@ defmodule Janus.Plugin.VideoRoom do
            Session.execute_request(session, message) do
       {:ok, id}
     end
-    |> handle_videoroom_error()
+    |> Errors.handle_videoroom_error()
   end
 
   @doc """
@@ -146,7 +146,7 @@ defmodule Janus.Plugin.VideoRoom do
            Session.execute_request(session, message) do
       {:ok, id}
     end
-    |> handle_videoroom_error()
+    |> Errors.handle_videoroom_error()
   end
 
   defp configure(room_id, room_properties, handle_id, admin_key, room_secret, request) do
@@ -193,7 +193,7 @@ defmodule Janus.Plugin.VideoRoom do
            Session.execute_request(session, message) do
       {:ok, id}
     end
-    |> handle_videoroom_error()
+    |> Errors.handle_videoroom_error()
   end
 
   @doc """
@@ -214,7 +214,7 @@ defmodule Janus.Plugin.VideoRoom do
            Session.execute_request(session, message) do
       {:ok, exists}
     end
-    |> handle_videoroom_error()
+    |> Errors.handle_videoroom_error()
   end
 
   @doc """
@@ -234,7 +234,7 @@ defmodule Janus.Plugin.VideoRoom do
            Session.execute_request(session, message) do
       {:ok, rooms}
     end
-    |> handle_videoroom_error()
+    |> Errors.handle_videoroom_error()
   end
 
   @doc """
@@ -274,7 +274,7 @@ defmodule Janus.Plugin.VideoRoom do
           }} <- Session.execute_request(session, message) do
       {:ok, resulting_allowed_list}
     end
-    |> handle_videoroom_error()
+    |> Errors.handle_videoroom_error()
   end
 
   @doc """
@@ -298,7 +298,7 @@ defmodule Janus.Plugin.VideoRoom do
     with {:ok, %{"videoroom" => "success"}} <- Session.execute_request(session, message) do
       :ok
     end
-    |> handle_videoroom_error()
+    |> Errors.handle_videoroom_error()
   end
 
   @doc """
@@ -325,7 +325,7 @@ defmodule Janus.Plugin.VideoRoom do
            Session.execute_request(session, message) do
       {:ok, participants}
     end
-    |> handle_videoroom_error()
+    |> Errors.handle_videoroom_error()
   end
 
   defp new_janus_message(body, handle_id) do
@@ -335,16 +335,6 @@ defmodule Janus.Plugin.VideoRoom do
       body: body
     }
   end
-
-  defp handle_videoroom_error(
-         {:ok, %{"error" => _message, "error_code" => code, "videoroom" => "event"}}
-       ) do
-    Errors.error(code)
-  end
-
-  defp handle_videoroom_error({:ok, _} = result), do: result
-  defp handle_videoroom_error(:ok), do: :ok
-  defp handle_videoroom_error({:error, _reason} = error), do: error
 
   defp put_if_not_nil(map, key, value)
   defp put_if_not_nil(map, _key, nil), do: map

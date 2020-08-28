@@ -1,5 +1,5 @@
 defmodule Janus.Plugin.VideoRoomTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
   import Mock
   import VideoRoomTest.Helper
   alias Janus.Plugin.VideoRoom

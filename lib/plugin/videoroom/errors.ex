@@ -21,4 +21,14 @@ defmodule Janus.Plugin.VideoRoom.Errors do
   def code(error) do
     Map.fetch!(@errors, error)
   end
+
+  def handle_videoroom_error(
+        {:ok, %{"error" => _message, "error_code" => code, "videoroom" => "event"}}
+      ) do
+    error(code)
+  end
+
+  def handle_videoroom_error({:ok, _} = result), do: result
+  def handle_videoroom_error(:ok), do: :ok
+  def handle_videoroom_error({:error, _reason} = error), do: error
 end
