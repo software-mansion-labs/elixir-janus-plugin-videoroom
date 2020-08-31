@@ -89,8 +89,15 @@ defmodule Janus.Plugin.VideoRoom do
       |> Map.from_struct()
       |> Map.put(@admin_key, admin_key)
       |> Map.put(@secret_key, room_secret)
-      |> Map.update!(:audiocodec, &listify_codec/1)
-      |> Map.update!(:videocodec, &listify_codec/1)
+
+    room_properties =
+      if request == "create" do
+        room_properties
+        |> Map.update!(:audiocodec, &listify_codec/1)
+        |> Map.update!(:videocodec, &listify_codec/1)
+      else
+        room_properties
+      end
       |> Enum.filter(fn {_key, value} -> value != nil end)
       |> Enum.into(%{})
 

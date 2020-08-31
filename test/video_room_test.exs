@@ -3,6 +3,7 @@ defmodule Janus.Plugin.VideoRoomTest do
   import Mock
   import VideoRoomTest.Helper
   alias Janus.Plugin.VideoRoom
+  alias Janus.Plugin.VideoRoom.{CreateRoomProperties, EditRoomProperties}
 
   @id 1
   @room_name "room_name"
@@ -18,7 +19,7 @@ defmodule Janus.Plugin.VideoRoomTest do
           assert message[:body][:description] == description
           {:ok, %{"videoroom" => "created", "room" => @id}}
         end do
-        room_props = %VideoRoom{description: description}
+        room_props = %CreateRoomProperties{description: description}
 
         assert {:ok, @id} ==
                  VideoRoom.create_room(Janus.Session, @room_name, room_props, nil, nil)
@@ -28,12 +29,12 @@ defmodule Janus.Plugin.VideoRoomTest do
     test_videoroom_plugin_error(
       :room_already_exists,
       &VideoRoom.create_room/5,
-      [Janus.Session, @room_name, %VideoRoom{}, nil, nil]
+      [Janus.Session, @room_name, %CreateRoomProperties{}, nil, nil]
     )
 
     test_session_error_propagation(
       &VideoRoom.create_room/5,
-      [Janus.Session, @room_name, %VideoRoom{}, nil, nil]
+      [Janus.Session, @room_name, %CreateRoomProperties{}, nil, nil]
     )
   end
 
@@ -47,19 +48,19 @@ defmodule Janus.Plugin.VideoRoomTest do
           {:ok, %{"videoroom" => "edited", "room" => @id}}
         end do
         assert {:ok, @id} =
-                 VideoRoom.edit(Janus.Session, @room_name, %VideoRoom{}, @handle_id, nil)
+                 VideoRoom.edit(Janus.Session, @room_name, %EditRoomProperties{}, @handle_id, nil)
       end
     end
 
     test_videoroom_plugin_error(
       :no_such_room,
       &VideoRoom.edit/5,
-      [Janus.Session, @room_name, %VideoRoom{}, @handle_id, nil]
+      [Janus.Session, @room_name, %EditRoomProperties{}, @handle_id, nil]
     )
 
     test_session_error_propagation(
       &VideoRoom.edit/5,
-      [Janus.Session, @room_name, %VideoRoom{}, @handle_id, nil]
+      [Janus.Session, @room_name, %EditRoomProperties{}, @handle_id, nil]
     )
   end
 
