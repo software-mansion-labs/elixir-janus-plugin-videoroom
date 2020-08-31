@@ -1,4 +1,8 @@
 defmodule Janus.Plugin.VideoRoom.CreateRoomProperties do
+  @moduledoc """
+  This modules represents structure of properties for room's `create` request.
+  """
+
   defstruct [
     :description,
     :is_private,
