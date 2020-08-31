@@ -25,7 +25,7 @@ defmodule Janus.Plugin.VideoRoom do
   ## Arguments
   * `session` - valid `Janus.Session` process to send request through
   * `room_id` - new room's id, if set to nil gateway will create one
-  * `room_properties` - struct containing necessary information about room, see `Janus.Plugin.VideoRoom.CreateRoomProperties`
+  * `room_properties` - struct containing necessary information about room, see `t:Janus.Plugin.VideoRoom.CreateRoomProperties.t/0`
   * `handle_id` - an id of caller's handle
   * `admin_key` - optional admin key if gateway requires it
   * `room_secret` - optional room secret when requested room has to be protected
@@ -61,7 +61,7 @@ defmodule Janus.Plugin.VideoRoom do
   ## Arguments
   * `session` - valid `Janus.Session` process to send request through
   * `room_id` - an id of targeted room
-  * `room_properties` - struct containing room information to be updated, see `Janus.Plugin.VideoRoom.EditRoomProperties`
+  * `room_properties` - struct containing room information to be updated, see `t:Janus.Plugin.VideoRoom.EditRoomProperties.t/0`
   * `handle_id` - an id of caller's handle
   * `room_secret` - optional room secret when requested room is protected
   """
