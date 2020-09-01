@@ -7,6 +7,17 @@ It takes advantage of transport layer provided by another package [Elixir Janus]
 ## Disclaimer
 Package is experimental and is not yet released to hex.
 
+## Example
+
+```elixir
+# this example uses `Janus.Transport.WS` package for connection's transport and arbitrary `CustomHandler` module that implements `Janus.Handler` behaviour.
+iex> alias Janus.{Connection, Session}
+iex> alias Janus.Transport.WS
+iex> alias Janus.Plugin.VideoRoom
+iex> {:ok, connection} = Connection.start_link(WS, {"ws://gateway-domain:8188", WS.Adapters.WebSockex, []}, CustomHandler, {}, [])
+iex> {:ok, session} = Session.start_link(connection)
+iex> {:ok, room_id} = VideoRoom.create_room(session, "room id", %CreateRoomProperties{description: "test videoroom"}, "some admin key", "some room secret")
+```
 
 ## Installation
 
