@@ -7,7 +7,7 @@ defmodule Janus.Plugin.VideoRoom do
   alias Janus.Plugin.VideoRoom.{CreateRoomProperties, EditRoomProperties}
 
   @admin_key :admin_key
-  @secret_key :secret
+  @room_secret_key :secret
 
   @type room_id :: String.t()
   @type room :: map
@@ -27,25 +27,27 @@ defmodule Janus.Plugin.VideoRoom do
   * `room_properties` - struct containing necessary information about room, see `t:Janus.Plugin.VideoRoom.CreateRoomProperties.t/0`
   * `handle_id` - an id of caller's handle
   * `admin_key` - optional admin key if gateway requires it
-  * `room_secret` - optional room secret when requested room has to be protected
   """
   @spec create_room(
           Session.t(),
           room_id,
           CreateRoomProperties.t(),
           Session.plugin_handle_id(),
-          admin_key,
-          room_secret
+          admin_key
         ) :: {:ok, String.t()} | {:error, any}
   def create_room(
         session,
         room_id,
         room_properties,
         handle_id,
-        admin_key \\ nil,
-        room_secret \\ nil
+        admin_key \\ nil
       ) do
-    message = configure(room_id, room_properties, handle_id, admin_key, room_secret, "create")
+    room_properties =
+      room_properties
+      |> Map.update!(:audiocodec, &join_codecs/1)
+      |> Map.update!(:videocodec, &join_codecs/1)
+
+    message = configure(room_id, room_properties, handle_id, admin_key, "create")
 
     with {:ok, %{"videoroom" => "created", "room" => id}} <-
            Session.execute_request(session, message) do
@@ -69,7 +71,7 @@ defmodule Janus.Plugin.VideoRoom do
           room_id,
           EditRoomProperties.t(),
           Session.plugin_handle_id(),
-          room_secret
+          room_secret()
         ) ::
           {:ok, room_id} | {:error, any}
   def edit(
@@ -79,7 +81,8 @@ defmodule Janus.Plugin.VideoRoom do
         handle_id,
         room_secret \\ nil
       ) do
-    message = configure(room_id, room_properties, handle_id, nil, room_secret, "edit")
+    message =
+      configure(room_id, room_properties, handle_id, nil, "edit", room_secret)
 
     with {:ok, %{"videoroom" => "edited", "room" => id}} <-
            Session.execute_request(session, message) do
@@ -88,21 +91,12 @@ defmodule Janus.Plugin.VideoRoom do
     |> Errors.handle_videoroom_error()
   end
 
-  defp configure(room_id, room_properties, handle_id, admin_key, room_secret, request) do
+  defp configure(room_id, room_properties, handle_id, admin_key, request, room_secret \\ nil) do
     room_properties =
       room_properties
       |> Map.from_struct()
       |> Map.put(@admin_key, admin_key)
-      |> Map.put(@secret_key, room_secret)
-
-    room_properties =
-      if request == "create" do
-        room_properties
-        |> Map.update!(:audiocodec, &join_codecs/1)
-        |> Map.update!(:videocodec, &join_codecs/1)
-      else
-        room_properties
-      end
+      |> put_if_not_nil(@room_secret_key, room_secret)
       |> Enum.filter(fn {_key, value} -> value != nil end)
       |> Enum.into(%{})
 
@@ -132,7 +126,7 @@ defmodule Janus.Plugin.VideoRoom do
   def destroy(session, room_id, handle_id, room_secret \\ nil) do
     message =
       %{room: room_id, request: "destroy"}
-      |> put_if_not_nil(@secret_key, room_secret)
+      |> put_if_not_nil(@room_secret_key, room_secret)
       |> new_janus_message(handle_id)
 
     with {:ok, %{"videoroom" => "destroyed", "room" => id}} <-
@@ -217,7 +211,7 @@ defmodule Janus.Plugin.VideoRoom do
       ) do
     message =
       %{request: "allowed", allowed: allowed_list, room: room_id, action: action}
-      |> put_if_not_nil(@secret_key, room_secret)
+      |> put_if_not_nil(@room_secret_key, room_secret)
       |> new_janus_message(handle_id)
 
     with {:ok,
@@ -252,7 +246,7 @@ defmodule Janus.Plugin.VideoRoom do
   def kick(session, room_id, user_id, handle_id, room_secret \\ nil) do
     message =
       %{request: "kick", id: user_id, room: room_id}
-      |> put_if_not_nil(@secret_key, room_secret)
+      |> put_if_not_nil(@room_secret_key, room_secret)
       |> new_janus_message(handle_id)
 
     with {:ok, %{"videoroom" => "success"}} <- Session.execute_request(session, message) do

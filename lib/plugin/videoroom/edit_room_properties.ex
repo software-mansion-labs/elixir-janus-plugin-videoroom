@@ -1,10 +1,11 @@
 defmodule Janus.Plugin.VideoRoom.EditRoomProperties do
   @moduledoc """
   This modules represents structure of properties for room's `edit` request.
+
+  For more information refer to `https://janus.conf.meetecho.com/docs/videoroom.html`.
   """
 
   defstruct [
-    :secret,
     :new_description,
     :new_is_private,
     :new_secret,
@@ -17,7 +18,6 @@ defmodule Janus.Plugin.VideoRoom.EditRoomProperties do
   ]
 
   @type t :: %__MODULE__{
-          secret: binary() | nil,
           new_description: binary() | nil,
           new_is_private: boolean() | nil,
           new_secret: binary() | nil,

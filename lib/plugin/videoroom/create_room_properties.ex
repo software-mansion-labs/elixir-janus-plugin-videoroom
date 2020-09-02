@@ -1,6 +1,8 @@
 defmodule Janus.Plugin.VideoRoom.CreateRoomProperties do
   @moduledoc """
   This modules represents structure of properties for room's `create` request.
+
+  For more information refer to `https://janus.conf.meetecho.com/docs/videoroom.html`.
   """
 
   defstruct [
