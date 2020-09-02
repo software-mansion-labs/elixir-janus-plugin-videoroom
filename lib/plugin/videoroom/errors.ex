@@ -14,7 +14,7 @@ defmodule Janus.Plugin.VideoRoom.Errors do
 
   @spec error(integer()) :: {:error, atom()}
   def error(code) do
-    {:error, Map.fetch!(@errors, code)}
+    {:error, Map.get(@errors, code, :unknown_error)}
   end
 
   @spec code(atom()) :: integer()
