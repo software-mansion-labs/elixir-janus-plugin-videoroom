@@ -81,8 +81,7 @@ defmodule Janus.Plugin.VideoRoom do
         handle_id,
         room_secret \\ nil
       ) do
-    message =
-      configure(room_id, room_properties, handle_id, nil, "edit", room_secret)
+    message = configure(room_id, room_properties, handle_id, nil, "edit", room_secret)
 
     with {:ok, %{"videoroom" => "edited", "room" => id}} <-
            Session.execute_request(session, message) do
