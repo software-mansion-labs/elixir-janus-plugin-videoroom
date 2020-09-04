@@ -48,8 +48,9 @@ defmodule Janus.Plugin.VideoRoom.Errors do
     Map.fetch!(@errors, error)
   end
 
+  @spec handle(any()) :: {:error, {atom(), integer(), String.t()}}
   def handle({:ok, %{"error" => reason, "error_code" => code, "videoroom" => "event"}}) do
-    {:error, {Map.get(@errors, code), code, reason}}
+    {:error, {Map.get(@errors, code, :unknown_janus_videoroom_error), code, reason}}
   end
 
   def handle({:error, _reason} = error) do
