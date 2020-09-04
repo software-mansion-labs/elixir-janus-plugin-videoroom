@@ -114,7 +114,7 @@ defmodule Janus.Plugin.VideoRoomTest do
       with_mock Janus.Session,
         execute_request: fn _, message ->
           assert message[:handle_id] == @handle_id
-          {:ok, %{"videoroom" => "success", "rooms" => rooms}}
+          {:ok, %{"videoroom" => "success", "list" => rooms}}
         end do
         assert {:ok, rooms} == VideoRoom.list(Janus.Session, @handle_id)
       end
