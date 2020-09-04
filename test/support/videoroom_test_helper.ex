@@ -30,13 +30,15 @@ defmodule VideoRoomTest.Helper do
   defmacro test_videoroom_plugin_error(error, fun, args) do
     quote do
       test "returns an error on plugin's #{unquote(error)} error message" do
-        code = Errors.code(unquote(error))
+        error_response = {:ok, error_message(unquote(error))}
+
+        expected_error = Errors.handle(error_response)
 
         with_mock Janus.Session,
           execute_request: fn _, _message ->
-            {:ok, error_message(code)}
+            error_response
           end do
-          assert Errors.error(code) == apply(unquote(fun), unquote(args))
+          assert expected_error == apply(unquote(fun), unquote(args))
         end
       end
     end
