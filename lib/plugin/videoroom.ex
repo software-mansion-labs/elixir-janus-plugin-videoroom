@@ -178,7 +178,7 @@ defmodule Janus.Plugin.VideoRoom do
       %{request: "list"}
       |> new_janus_message(handle_id)
 
-    with {:ok, %{"videoroom" => "success", "rooms" => rooms}} <-
+    with {:ok, %{"videoroom" => "success", "list" => rooms}} <-
            Session.execute_request(session, message) do
       {:ok, rooms}
     else
