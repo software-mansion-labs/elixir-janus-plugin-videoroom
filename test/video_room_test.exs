@@ -27,7 +27,7 @@ defmodule Janus.Plugin.VideoRoomTest do
     end
 
     test_videoroom_plugin_error(
-      :room_already_exists,
+      :janus_videoroom_error_room_exists,
       &VideoRoom.create_room/5,
       [Janus.Session, @room_name, %CreateRoomProperties{}, nil, nil]
     )
@@ -53,7 +53,7 @@ defmodule Janus.Plugin.VideoRoomTest do
     end
 
     test_videoroom_plugin_error(
-      :no_such_room,
+      :janus_videoroom_error_no_such_room,
       &VideoRoom.edit/5,
       [Janus.Session, @room_name, %EditRoomProperties{}, @handle_id, nil]
     )
@@ -77,7 +77,7 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test_videoroom_plugin_error(:no_such_room, &VideoRoom.destroy/4, [
+    test_videoroom_plugin_error(:janus_videoroom_error_no_such_room, &VideoRoom.destroy/4, [
       Janus.Session,
       @room_name,
       @handle_id,
@@ -114,7 +114,7 @@ defmodule Janus.Plugin.VideoRoomTest do
       with_mock Janus.Session,
         execute_request: fn _, message ->
           assert message[:handle_id] == @handle_id
-          {:ok, %{"videoroom" => "success", "rooms" => rooms}}
+          {:ok, %{"videoroom" => "success", "list" => rooms}}
         end do
         assert {:ok, rooms} == VideoRoom.list(Janus.Session, @handle_id)
       end
@@ -144,7 +144,7 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test_videoroom_plugin_error(:no_such_room, &VideoRoom.allowed/6, [
+    test_videoroom_plugin_error(:janus_videoroom_error_no_such_room, &VideoRoom.allowed/6, [
       Janus.Session,
       @room_name,
       "add",
@@ -177,7 +177,7 @@ defmodule Janus.Plugin.VideoRoomTest do
     end
 
     test_videoroom_plugin_error(
-      :no_such_feed,
+      :janus_videoroom_error_no_such_feed,
       &VideoRoom.kick/5,
       [Janus.Session, @room_name, "user_id", @handle_id, nil]
     )
@@ -218,11 +218,15 @@ defmodule Janus.Plugin.VideoRoomTest do
       end
     end
 
-    test_videoroom_plugin_error(:no_such_room, &VideoRoom.list_participants/3, [
-      Janus.Session,
-      @room_name,
-      @handle_id
-    ])
+    test_videoroom_plugin_error(
+      :janus_videoroom_error_no_such_room,
+      &VideoRoom.list_participants/3,
+      [
+        Janus.Session,
+        @room_name,
+        @handle_id
+      ]
+    )
 
     test_session_error_propagation(&VideoRoom.list_participants/3, [
       Janus.Session,
