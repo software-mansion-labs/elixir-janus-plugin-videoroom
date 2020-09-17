@@ -4,7 +4,17 @@ defmodule Janus.Plugin.VideoRoom do
   """
   alias Janus.Session
   alias Janus.Plugin.VideoRoom.Errors
-  alias Janus.Plugin.VideoRoom.{CreateRoomProperties, EditRoomProperties, PublisherConfiguration}
+
+  alias Janus.Plugin.VideoRoom.{
+    CreateRoomProperties,
+    EditRoomProperties,
+    ParticipantInfo,
+    PublisherConfig,
+    PublisherJoinConfig,
+    PublisherJoinedResponse,
+    SubscriberConfig,
+    SubscriberJoinConfig
+  }
 
   @admin_key :admin_key
   @room_secret_key :secret
@@ -293,14 +303,19 @@ defmodule Janus.Plugin.VideoRoom do
             "participants" => participants
           }} <-
            Session.execute_request(session, message) do
-      {:ok, participants}
+      {:ok, ParticipantInfo.from_response(participants)}
     else
       error -> Errors.handle(error)
     end
   end
 
+  @spec join(
+          Session.t(),
+          PublisherJoinConfig.t(),
+          Session.plugin_handle_id()
+        ) :: nil | {:error, {atom, integer, binary}}
   @doc """
-  Joins the room as a participant, that may start publishing after calling `configure/`
+  Joins the room as a (not active yet) publisher, that may start publishing after calling `publish`
 
   ## Optional fields
 
@@ -308,41 +323,33 @@ defmodule Janus.Plugin.VideoRoom do
   - `:display_name`  - name that should be displayed. optional, but recommended
   - `:token` - invitation token, required only if the room has an ACL
   """
-  @spec join(Session.t(), room_id(), Session.plugin_handle_id(), keyword()) ::
-          nil | {:error, {:invalid_fields, [...]} | {atom, integer, binary}}
-  def join(session, room_id, handle_id, optional_fields) do
-    {known_fields, invalid_fields} =
-      optional_fields |> Keyword.split([:publisher_id, :display_name, :token])
-
+  def join(session, %PublisherJoinConfig{} = config, handle_id) do
     message =
-      known_fields
-      |> Bunch.KVEnum.map_keys(fn
-        :publisher_id -> :id
-        :display_name -> :name
-        other -> other
-      end)
-      |> Map.new()
+      config
+      |> PublisherJoinConfig.to_janus_message()
       |> Map.merge(%{
         request: "join",
-        ptype: "publisher",
-        room: room_id
+        ptype: "publisher"
       })
       |> new_janus_message(handle_id)
 
-    with [] <- invalid_fields,
-         {:ok, %{"videoroom" => "joined", "room" => ^room_id}} <-
+    room_id = config.room_id
+
+    with {:ok, %{"videoroom" => "joined", "room" => ^room_id} = response} <-
            Session.execute_request(session, message) do
+      result = PublisherJoinedResponse.from_response(response)
+      {:ok, result}
     else
-      fields when is_list(fields) -> {:error, {:invalid_fields, fields}}
       error -> Errors.handle(error)
     end
   end
 
-  def publish(session, %PublisherConfiguration{} = config, handle_id, sdp_offer) do
+  def publish(session, %PublisherConfig{} = config, handle_id, sdp_offer) do
     message =
       config
-      |> PublisherConfiguration.to_janus_message()
+      |> PublisherConfig.to_janus_message()
       |> Map.put(:request, "publish")
+      |> Map.delete(:request_keyframe?)
       |> new_janus_message(handle_id)
       |> Map.put(:jsep, %{type: "offer", sdp: sdp_offer})
 
@@ -354,10 +361,10 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
-  def configure(session, %PublisherConfiguration{} = config, handle_id) do
+  def configure_publisher(session, %PublisherConfig{} = config, handle_id) do
     message =
       config
-      |> PublisherConfiguration.to_janus_message()
+      |> PublisherConfig.to_janus_message()
       |> Map.put(:request, "configure")
       |> new_janus_message(handle_id)
 
@@ -369,6 +376,56 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  # TODO: "rtp_forward"
+  # TODO: "stop_rtp_forward"
+  # TODO: "listforwarders"
+  # TODO: "enable_recording"
+
+  def subscribe(session, %SubscriberJoinConfig{} = config, handle_id) do
+    message =
+      config
+      |> SubscriberJoinConfig.to_janus_message()
+      |> Map.merge(%{request: "join", ptype: "subscriber"})
+      |> new_janus_message(handle_id)
+
+    with {:ok, %{"videoroom" => "attached", "jsep" => %{"sdp" => sdp}}} <-
+           Session.execute_request(session, message) do
+      {:ok, sdp}
+    else
+      error -> Errors.handle(error)
+    end
+  end
+
+  def start(session, sdp_answer, handle_id) do
+    message =
+      %{request: "start"}
+      |> new_janus_message(handle_id)
+      |> Map.put(:jsep, %{type: "answer", sdp: sdp_answer})
+
+    with {:ok, %{"videoroom" => "event", "started" => "ok"}} <-
+           Session.execute_request(session, message) do
+      :ok
+    else
+      error -> Errors.handle(error)
+    end
+  end
+
+  def configure_subscriber(session, config, handle_id) do
+    message =
+      config
+      |> SubscriberConfig.to_janus_message()
+      |> Map.put(:request, "configure")
+      |> new_janus_message(handle_id)
+
+    with {:ok, %{"videoroom" => "attached", "jsep" => %{"sdp" => sdp}}} <-
+           Session.execute_request(session, message) do
+      {:ok, sdp}
+    else
+      error -> Errors.handle(error)
+    end
+  end
+
+  # TODO: "switch"
   def leave(session, handle_id) do
     request = %{"videoroom" => "event", request: "leave"} |> new_janus_message(handle_id)
 
