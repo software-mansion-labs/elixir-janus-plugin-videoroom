@@ -25,6 +25,7 @@ defmodule Janus.Plugin.VideoRoom do
   @type room_secret :: String.t() | nil
   @type action :: String.t()
   @type allowed :: list(String.t())
+  @type sdp :: String.t()
 
   @type participant :: map
 
@@ -309,20 +310,11 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
-  @spec join(
-          Session.t(),
-          PublisherJoinConfig.t(),
-          Session.plugin_handle_id()
-        ) :: nil | {:error, {atom, integer, binary}}
   @doc """
   Joins the room as a (not active yet) publisher, that may start publishing after calling `publish`
-
-  ## Optional fields
-
-  - `:publisher_id` - unique ID for the publisher; optional, will be chosen by the plugin if missing
-  - `:display_name`  - name that should be displayed. optional, but recommended
-  - `:token` - invitation token, required only if the room has an ACL
   """
+  @spec join(Session.t(), PublisherJoinConfig.t(), Session.plugin_handle_id()) ::
+          {:ok, PublisherJoinedResponse.t()} | {:error, any}
   def join(session, %PublisherJoinConfig{} = config, handle_id) do
     message =
       config
@@ -344,6 +336,11 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  @doc """
+  Starts publishing to the room. Requires sdp offer, returns sdp answer.
+  """
+  @spec publish(Session.t(), PublisherConfig.t(), Session.plugin_handle_id(), sdp_offer :: sdp()) ::
+          {:error, any} | {:ok, sdp_answer :: sdp()}
   def publish(session, %PublisherConfig{} = config, handle_id, sdp_offer) do
     message =
       config
@@ -361,6 +358,14 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  @doc """
+  Allows to dynamically change the configuration of a publisher.
+  """
+  @spec configure_publisher(
+          Session.t(),
+          PublisherConfig.t(),
+          Session.plugin_handle_id()
+        ) :: :ok | {:error, any}
   def configure_publisher(session, %PublisherConfig{} = config, handle_id) do
     message =
       config
@@ -381,6 +386,13 @@ defmodule Janus.Plugin.VideoRoom do
   # TODO: "listforwarders"
   # TODO: "enable_recording"
 
+  @doc """
+  Starts a subscription to the configured publisher using the provided handle.
+
+  Return SDP offer from Janus.
+  """
+  @spec subscribe(Session.t(), SubscriberJoinConfig.t(), Session.plugin_handle_id()) ::
+          {:error, any} | {:ok, sdp_offer :: sdp()}
   def subscribe(session, %SubscriberJoinConfig{} = config, handle_id) do
     message =
       config
@@ -396,6 +408,11 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  @doc """
+  Provides an SDP answer to Janus and allows the media to flow
+  """
+  @spec start(Session.t(), sdp_answer :: sdp(), Session.plugin_handle_id()) ::
+          :ok | {:error, any}
   def start(session, sdp_answer, handle_id) do
     message =
       %{request: "start"}
@@ -410,6 +427,11 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  @doc """
+  Allows to dynamically change the configuration of a publisher.
+  """
+  @spec configure_subscriber(Session.t(), SubscriberConfig.t(), Session.plugin_handle_id()) ::
+          {:error, any} | :ok
   def configure_subscriber(session, config, handle_id) do
     message =
       config
@@ -417,19 +439,25 @@ defmodule Janus.Plugin.VideoRoom do
       |> Map.put(:request, "configure")
       |> new_janus_message(handle_id)
 
-    with {:ok, %{"videoroom" => "attached", "jsep" => %{"sdp" => sdp}}} <-
+    with {:ok, %{"videoroom" => "event", "configured" => "ok"}} <-
            Session.execute_request(session, message) do
-      {:ok, sdp}
+      :ok
     else
       error -> Errors.handle(error)
     end
   end
 
   # TODO: "switch"
+
+  @doc """
+  Leaves the room, tearing down the PeerConnection (if opened) and implicitly unpublishing (for active publisher)
+  """
+  @spec leave(Session.t(), Session.plugin_handle_id()) :: :ok | {:error, any}
   def leave(session, handle_id) do
     request = %{"videoroom" => "event", request: "leave"} |> new_janus_message(handle_id)
 
     with {:ok, %{"left" => "ok"}} <- Session.execute_request(session, request) do
+      :ok
     else
       error -> Errors.handle(error)
     end

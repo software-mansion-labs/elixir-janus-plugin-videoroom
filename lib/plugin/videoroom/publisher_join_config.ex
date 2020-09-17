@@ -3,10 +3,10 @@ defmodule Janus.Plugin.VideoRoom.PublisherJoinConfig do
   Struct with options provided when joining the room as a publisher
 
   Contains following fields:
-  - `room` - unique ID of the room to join; required,
-  - `id` - unique ID to register for the publisher; optional, will be chosen by the plugin if missing,
-  - `display_name` - display name for the publisher; optional,
-  - `token` - invitation token, in case the room has an ACL; optional
+  - `:room` - unique ID of the room to join; required,
+  - `:id` - unique ID to register for the publisher; optional, will be chosen by the plugin if missing,
+  - `:display_name` - display name for the publisher; optional,
+  - `:token` - invitation token, in case the room has an ACL; optional
   """
 
   alias Janus.Plugin.VideoRoom
