@@ -201,7 +201,12 @@ defmodule Janus.Plugin.VideoRoomTest do
 
   describe "list_participants/3 sends list participants request through connection and" do
     setup do
-      [participants: [%{name: "participant1"}, %{name: "participant2"}]]
+      [
+        participants: [
+          %{"id" => "id1", "display" => "participant1"},
+          %{"id" => "id2", "display" => "participant2"}
+        ]
+      ]
     end
 
     test "returns ok tuple with list of participants on success", %{participants: participants} do

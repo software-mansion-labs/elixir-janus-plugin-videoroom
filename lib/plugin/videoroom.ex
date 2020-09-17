@@ -304,7 +304,11 @@ defmodule Janus.Plugin.VideoRoom do
             "participants" => participants
           }} <-
            Session.execute_request(session, message) do
-      {:ok, ParticipantInfo.from_response(participants)}
+      result =
+        participants
+        |> Enum.map(&ParticipantInfo.from_response/1)
+
+      {:ok, result}
     else
       error -> Errors.handle(error)
     end
