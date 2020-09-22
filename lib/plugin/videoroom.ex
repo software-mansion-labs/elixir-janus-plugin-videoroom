@@ -32,6 +32,17 @@ defmodule Janus.Plugin.VideoRoom do
   @type audio_codec :: :opus | :g722 | :pcmu | :pcma | :isac32 | :isac16
   @type video_codec :: :vp8 | :vp9 | :h264 | :av1 | :h265
 
+  @spec attach(Session.t(), Session.timeout_t()) ::
+          {:error, any} | {:ok, Session.plugin_handle_id()}
+  @doc """
+  Attaches to a videoroom plugin, creating a new handle
+
+  Simple wrapper over `#{inspect(Session)}.session_attach/3`
+  """
+  def attach(session, timeout \\ 5000) do
+    Session.session_attach(session, "janus.plugin.videoroom", timeout)
+  end
+
   @doc """
   Create a new room.
 
@@ -42,14 +53,14 @@ defmodule Janus.Plugin.VideoRoom do
   * `handle_id` - an id of caller's handle
   * `admin_key` - optional admin key if gateway requires it
   """
-  @spec create_room(
+  @spec create(
           Session.t(),
           room_id,
           CreateRoomProperties.t(),
           Session.plugin_handle_id(),
           admin_key
         ) :: {:ok, String.t()} | {:error, any}
-  def create_room(
+  def create(
         session,
         room_id,
         room_properties,
@@ -331,14 +342,19 @@ defmodule Janus.Plugin.VideoRoom do
 
     room_id = config.room_id
 
-    with {:ok, %{"videoroom" => "joined", "room" => ^room_id} = response} <-
-           Session.execute_request(session, message) do
+    with {:ok,
+          %{
+            "plugindata" => %{"data" => %{"videoroom" => "joined", "room" => ^room_id} = response}
+          }} <-
+           Session.execute_async_request(session, message) do
       result = PublisherJoinedResponse.from_response(response)
       {:ok, result}
     else
       error -> Errors.handle(error)
     end
   end
+
+  # TODO: Join and configure
 
   @doc """
   Starts publishing to the room. Requires sdp offer, returns sdp answer.
@@ -354,8 +370,14 @@ defmodule Janus.Plugin.VideoRoom do
       |> new_janus_message(handle_id)
       |> Map.put(:jsep, %{type: "offer", sdp: sdp_offer})
 
-    with {:ok, %{"videoroom" => "event", "configured" => "ok", "jsep" => %{"sdp" => sdp}}} <-
-           Session.execute_request(session, message) do
+    with {:ok,
+          %{
+            "plugindata" => %{
+              "data" => %{"videoroom" => "event", "configured" => "ok"}
+            },
+            "jsep" => %{"sdp" => sdp}
+          }} <-
+           Session.execute_async_request(session, message) do
       {:ok, sdp}
     else
       error -> Errors.handle(error)
@@ -377,8 +399,13 @@ defmodule Janus.Plugin.VideoRoom do
       |> Map.put(:request, "configure")
       |> new_janus_message(handle_id)
 
-    with {:ok, %{"videoroom" => "event", "configured" => "ok"}} <-
-           Session.execute_request(session, message) do
+    with {:ok,
+          %{
+            "plugindata" => %{
+              "data" => %{"videoroom" => "event", "configured" => "ok"}
+            }
+          }} <-
+           Session.execute_async_request(session, message) do
       :ok
     else
       error -> Errors.handle(error)
@@ -404,8 +431,14 @@ defmodule Janus.Plugin.VideoRoom do
       |> Map.merge(%{request: "join", ptype: "subscriber"})
       |> new_janus_message(handle_id)
 
-    with {:ok, %{"videoroom" => "attached", "jsep" => %{"sdp" => sdp}}} <-
-           Session.execute_request(session, message) do
+    with {:ok,
+          %{
+            "plugindata" => %{
+              "data" => %{"videoroom" => "attached"}
+            },
+            "jsep" => %{"sdp" => sdp}
+          }} <-
+           Session.execute_async_request(session, message) do
       {:ok, sdp}
     else
       error -> Errors.handle(error)
@@ -415,16 +448,21 @@ defmodule Janus.Plugin.VideoRoom do
   @doc """
   Provides an SDP answer to Janus and allows the media to flow
   """
-  @spec start(Session.t(), sdp_answer :: sdp(), Session.plugin_handle_id()) ::
+  @spec start_subscription(Session.t(), sdp_answer :: sdp(), Session.plugin_handle_id()) ::
           :ok | {:error, any}
-  def start(session, sdp_answer, handle_id) do
+  def start_subscription(session, sdp_answer, handle_id) do
     message =
       %{request: "start"}
       |> new_janus_message(handle_id)
       |> Map.put(:jsep, %{type: "answer", sdp: sdp_answer})
 
-    with {:ok, %{"videoroom" => "event", "started" => "ok"}} <-
-           Session.execute_request(session, message) do
+    with {:ok,
+          %{
+            "plugindata" => %{
+              "data" => %{"videoroom" => "event", "started" => "ok"}
+            }
+          }} <-
+           Session.execute_async_request(session, message) do
       :ok
     else
       error -> Errors.handle(error)
@@ -432,7 +470,7 @@ defmodule Janus.Plugin.VideoRoom do
   end
 
   @doc """
-  Allows to dynamically change the configuration of a publisher.
+  Allows to dynamically change the configuration of a subscriber.
   """
   @spec configure_subscriber(Session.t(), SubscriberConfig.t(), Session.plugin_handle_id()) ::
           {:error, any} | :ok
@@ -443,8 +481,13 @@ defmodule Janus.Plugin.VideoRoom do
       |> Map.put(:request, "configure")
       |> new_janus_message(handle_id)
 
-    with {:ok, %{"videoroom" => "event", "configured" => "ok"}} <-
-           Session.execute_request(session, message) do
+    with {:ok,
+          %{
+            "plugindata" => %{
+              "data" => %{"videoroom" => "event", "configured" => "ok"}
+            }
+          }} <-
+           Session.execute_async_request(session, message) do
       :ok
     else
       error -> Errors.handle(error)
@@ -460,10 +503,25 @@ defmodule Janus.Plugin.VideoRoom do
   def leave(session, handle_id) do
     request = %{"videoroom" => "event", request: "leave"} |> new_janus_message(handle_id)
 
-    with {:ok, %{"left" => "ok"}} <- Session.execute_request(session, request) do
-      :ok
-    else
-      error -> Errors.handle(error)
+    case Session.execute_async_request(session, request) do
+      {:ok,
+       %{
+         "plugindata" => %{
+           "data" => %{"left" => "ok"}
+         }
+       }} ->
+        :ok
+
+      {:ok,
+       %{
+         "plugindata" => %{
+           "data" => %{"leaving" => "ok"}
+         }
+       }} ->
+        :ok
+
+      error ->
+        Errors.handle(error)
     end
   end
 

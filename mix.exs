@@ -35,8 +35,12 @@ defmodule Janus.Plugin.VideoRoom.Mixfile do
 
   defp deps do
     [
-      {:elixir_janus, github: "software-mansion-labs/elixir-janus"},
+      {:elixir_janus,
+       github: "software-mansion-labs/elixir-janus", branch: "add-async-support", override: true},
       {:jason, "~> 1.0"},
+      {:elixir_janus_transport_ws,
+       github: "software-mansion-labs/elixir-janus-transport-ws", only: :test},
+      {:websockex, "~> 0.4.2", only: :test},
       {:mock, "~> 0.3.0", only: :test},
       {:ex_doc, "~> 0.22", only: [:test, :dev], runtime: false}
     ]

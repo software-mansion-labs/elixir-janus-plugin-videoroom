@@ -5,6 +5,7 @@ defmodule Janus.Plugin.VideoRoom.PublisherJoinedResponse do
   @type t() :: %__MODULE__{
           room_id: VideoRoom.room_id(),
           description: String.t(),
+          publisher_id: pos_integer(),
           private_id: String.t(),
           publishers: [ParticipantInfo.t()],
           attendees: [ParticipantInfo.t()] | nil
@@ -13,6 +14,7 @@ defmodule Janus.Plugin.VideoRoom.PublisherJoinedResponse do
   defstruct [
     :room_id,
     :description,
+    :publisher_id,
     :private_id,
     :publishers,
     :attendees
@@ -21,6 +23,7 @@ defmodule Janus.Plugin.VideoRoom.PublisherJoinedResponse do
   @key_mapping %{
     "room" => :room_id,
     "description" => :description,
+    "id" => :publisher_id,
     "private_id" => :private_id,
     "publishers" => :publishers,
     "attendees" => :attendees

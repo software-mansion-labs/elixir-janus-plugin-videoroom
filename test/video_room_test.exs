@@ -9,7 +9,7 @@ defmodule Janus.Plugin.VideoRoomTest do
   @room_name "room_name"
   @handle_id 1
 
-  describe "create_room/6 sends create room request through connection and" do
+  describe "create/6 sends create room request through connection and" do
     test "returns ok tuple with room id on success" do
       description = "A room description"
 
@@ -22,18 +22,18 @@ defmodule Janus.Plugin.VideoRoomTest do
         room_props = %CreateRoomProperties{description: description}
 
         assert {:ok, @id} ==
-                 VideoRoom.create_room(Janus.Session, @room_name, room_props, nil, nil)
+                 VideoRoom.create(Janus.Session, @room_name, room_props, nil, nil)
       end
     end
 
     test_videoroom_plugin_error(
       :janus_videoroom_error_room_exists,
-      &VideoRoom.create_room/5,
+      &VideoRoom.create/5,
       [Janus.Session, @room_name, %CreateRoomProperties{}, nil, nil]
     )
 
     test_session_error_propagation(
-      &VideoRoom.create_room/5,
+      &VideoRoom.create/5,
       [Janus.Session, @room_name, %CreateRoomProperties{}, nil, nil]
     )
   end

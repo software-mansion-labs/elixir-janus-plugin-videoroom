@@ -5,6 +5,7 @@ This package implements functionality to communicate with [Janus VideoRoom plugi
 It takes advantage of transport layer provided by another package [Elixir Janus](https://github.com/software-mansion-labs/elixir-janus).
 
 ## Disclaimer
+
 Package is experimental and is not yet released to hex.
 
 ## Example
@@ -16,7 +17,7 @@ iex> alias Janus.Transport.WS
 iex> alias Janus.Plugin.VideoRoom
 iex> {:ok, connection} = Connection.start_link(WS, {"ws://gateway-domain:8188", WS.Adapters.WebSockex, []}, CustomHandler, {}, [])
 iex> {:ok, session} = Session.start_link(connection)
-iex> {:ok, room_id} = VideoRoom.create_room(session, "room id", %CreateRoomProperties{description: "test videoroom"}, "some admin key", "some room secret")
+iex> {:ok, room_id} = VideoRoom.create(session, "room id", %CreateRoomProperties{description: "test videoroom"}, "some admin key", "some room secret")
 ```
 
 ## Installation
@@ -28,6 +29,10 @@ def deps do
   ]
 end
 ```
+
+## Testing
+
+By default, the tests contacting Janus Gateway are disabled. To run them, use `mix test --include integration`
 
 ## Copyright and License
 
