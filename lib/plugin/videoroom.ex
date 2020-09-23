@@ -415,7 +415,7 @@ defmodule Janus.Plugin.VideoRoom do
   @doc """
   Stops publishing using the passed handle
   """
-  @spec unpublish(Session.t(), Session.plugin_handle_id()) :: :ok
+  @spec unpublish(Session.t(), Session.plugin_handle_id()) :: :ok | {:error, any}
   def unpublish(session, handle_id) do
     message = %{request: :unpublish} |> new_janus_message(handle_id)
 
@@ -475,6 +475,52 @@ defmodule Janus.Plugin.VideoRoom do
       %{request: "start"}
       |> new_janus_message(handle_id)
       |> Map.put(:jsep, %{type: "answer", sdp: sdp_answer})
+
+    with {:ok,
+          %{
+            "plugindata" => %{
+              "data" => %{"videoroom" => "event", "started" => "ok"}
+            }
+          }} <-
+           Session.execute_async_request(session, message) do
+      :ok
+    else
+      error -> Errors.handle(error)
+    end
+  end
+
+  @doc """
+  Pauses the delivery of media to a subscriber
+  """
+  @spec pause(Session.t(), Session.plugin_handle_id()) ::
+          :ok | {:error, any}
+  def pause(session, handle_id) do
+    message =
+      %{request: "pause"}
+      |> new_janus_message(handle_id)
+
+    with {:ok,
+          %{
+            "plugindata" => %{
+              "data" => %{"videoroom" => "event", "paused" => "ok"}
+            }
+          }} <-
+           Session.execute_async_request(session, message) do
+      :ok
+    else
+      error -> Errors.handle(error)
+    end
+  end
+
+  @doc """
+  Resumes the delivery of media to a subscriber after it has been paused
+  """
+  @spec resume(Session.t(), Session.plugin_handle_id()) ::
+          :ok | {:error, any}
+  def resume(session, handle_id) do
+    message =
+      %{request: "start"}
+      |> new_janus_message(handle_id)
 
     with {:ok,
           %{
