@@ -35,8 +35,7 @@ defmodule Janus.Plugin.VideoRoom.Mixfile do
 
   defp deps do
     [
-      {:elixir_janus,
-       github: "software-mansion-labs/elixir-janus", branch: "add-async-support", override: true},
+      {:elixir_janus, github: "software-mansion-labs/elixir-janus"},
       {:jason, "~> 1.0"},
       {:elixir_janus_transport_ws,
        github: "software-mansion-labs/elixir-janus-transport-ws", only: :test},
@@ -60,7 +59,8 @@ defmodule Janus.Plugin.VideoRoom.Mixfile do
     [
       main: "readme",
       extras: ["README.md", "LICENSE"],
-      source_ref: "v#{@version}"
+      source_ref: "v#{@version}",
+      nest_modules_by_prefix: [Janus.Plugin.VideoRoom]
     ]
   end
 end
