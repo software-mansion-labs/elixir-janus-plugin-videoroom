@@ -54,8 +54,6 @@ defmodule Janus.Plugin.VideoRoom.IntegrationTest do
 
     publisher_reconfig = %VideoRoom.PublisherConfig{display_name: "Pub1", relay_data?: false}
     assert :ok = VideoRoom.configure_publisher(session, publisher_reconfig, pub_handle)
-    # Give Janus time to add the publisher
-    # Process.sleep(2000)
 
     assert {:ok, sub_handle} = VideoRoom.attach(session)
     assert {:ok, [publisher]} = VideoRoom.list_participants(session, @test_room_id, sub_handle)
