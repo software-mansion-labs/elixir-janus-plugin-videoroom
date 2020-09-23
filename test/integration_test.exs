@@ -71,6 +71,7 @@ defmodule Janus.Plugin.VideoRoom.IntegrationTest do
     assert :ok = VideoRoom.start_subscription(session, TestFixtures.sdp_answer(), sub_handle)
 
     assert :ok = VideoRoom.leave(session, sub_handle)
+    assert :ok = VideoRoom.unpublish(session, pub_handle)
     assert :ok = VideoRoom.leave(session, pub_handle)
   end
 end

@@ -412,6 +412,26 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  @doc """
+  Stops publishing using the passed handle
+  """
+  @spec unpublish(Session.t(), Session.plugin_handle_id()) :: :ok
+  def unpublish(session, handle_id) do
+    message = %{request: :unpublish} |> new_janus_message(handle_id)
+
+    with {:ok,
+          %{
+            "plugindata" => %{
+              "data" => %{"videoroom" => "event", "unpublished" => "ok"}
+            }
+          }} <-
+           Session.execute_async_request(session, message) do
+      :ok
+    else
+      error -> Errors.handle(error)
+    end
+  end
+
   # TODO: "rtp_forward"
   # TODO: "stop_rtp_forward"
   # TODO: "listforwarders"
