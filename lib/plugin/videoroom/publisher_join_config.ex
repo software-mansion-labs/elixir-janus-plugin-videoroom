@@ -30,7 +30,7 @@ defmodule Janus.Plugin.VideoRoom.PublisherJoinConfig do
   @struct_to_janus_keys %{
     :room_id => :room,
     :publisher_id => :id,
-    :display_name => :name
+    :display_name => :display
   }
 
   @spec to_janus_message(t()) :: map()
