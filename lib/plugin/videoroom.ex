@@ -591,6 +591,54 @@ defmodule Janus.Plugin.VideoRoom do
     end
   end
 
+  @doc """
+  Send trickled ICE candidate.
+  """
+  @spec send_candidate(
+          Session.t(),
+          Session.plugin_handle_id(),
+          candidate :: sdp(),
+          sdp_mid :: String.t(),
+          sdp_m_line_index :: non_neg_integer() | nil
+        ) :: :ok | {:error, any()}
+  def send_candidate(session, handle_id, candidate, sdp_mid, sdp_m_line_index) do
+    message = %{
+      janus: "trickle",
+      handle_id: handle_id,
+      candidate: %{
+        candidate: candidate,
+        sdpMLineIndex: sdp_m_line_index,
+        sdpMid: sdp_mid
+      }
+    }
+
+    with {:ok, %{"janus" => "ack"}} <- Session.execute_request(session, message) do
+      :ok
+    else
+      error -> Errors.handle(error)
+    end
+  end
+
+  @doc """
+  Indicate the end of trickled ICE candidates.
+  """
+  @spec end_of_candidates(Session.t(), Session.plugin_handle_id()) :: :ok | {:error, any()}
+  def end_of_candidates(session, handle_id) do
+    message = %{
+      janus: "trickle",
+      handle_id: handle_id,
+      candidate: %{
+        completed: true
+      }
+    }
+
+    with {:ok, %{"janus" => "ack"}} <- Session.execute_request(session, message) do
+      :ok
+    else
+      error -> Errors.handle(error)
+    end
+  end
+
   defp new_janus_message(body, handle_id) do
     %{
       janus: "message",

@@ -52,6 +52,8 @@ defmodule Janus.Plugin.VideoRoom.IntegrationTest do
     assert {:ok, sdp_answer} =
              VideoRoom.publish(session, publisher_config, pub_handle, TestFixtures.sdp_offer())
 
+    assert :ok = VideoRoom.end_of_candidates(session, pub_handle)
+
     publisher_reconfig = %VideoRoom.PublisherConfig{display_name: "Pub1", relay_data?: false}
     assert :ok = VideoRoom.configure_publisher(session, publisher_reconfig, pub_handle)
 
