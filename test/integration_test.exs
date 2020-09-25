@@ -74,4 +74,19 @@ defmodule Janus.Plugin.VideoRoom.IntegrationTest do
     assert :ok = VideoRoom.unpublish(session, pub_handle)
     assert :ok = VideoRoom.leave(session, pub_handle)
   end
+
+  test "Publish without join", %{session: session} do
+    assert {:ok, pub_handle} = VideoRoom.attach(session)
+    properties = %VideoRoom.CreateRoomProperties{}
+
+    VideoRoom.destroy(session, @test_room_id, pub_handle)
+
+    assert {:ok, @test_room_id} = VideoRoom.create(session, @test_room_id, properties, pub_handle)
+
+    publisher_config = %VideoRoom.PublisherConfig{display_name: "pub1"}
+
+    # premature publish
+    assert {:error, {:janus_videoroom_error_join_first, 424, _description}} =
+             VideoRoom.publish(session, publisher_config, pub_handle, TestFixtures.sdp_offer())
+  end
 end

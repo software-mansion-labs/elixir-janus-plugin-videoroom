@@ -53,6 +53,19 @@ defmodule Janus.Plugin.VideoRoom.Errors do
     {:error, {Map.get(@errors, code, :unknown_janus_videoroom_error), code, reason}}
   end
 
+  # Wrapped error from async requests
+  def handle(
+        {:ok,
+         %{
+           "janus" => "event",
+           "plugindata" => %{
+             "data" => %{"error" => reason, "error_code" => code, "videoroom" => "event"}
+           }
+         }}
+      ) do
+    {:error, {Map.get(@errors, code, :unknown_janus_videoroom_error), code, reason}}
+  end
+
   def handle({:error, _reason} = error) do
     error
   end
