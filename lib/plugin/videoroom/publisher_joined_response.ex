@@ -38,7 +38,7 @@ defmodule Janus.Plugin.VideoRoom.PublisherJoinedResponse do
       |> Map.take(known_keys)
       |> Bunch.KVEnum.map_keys(fn key -> @key_mapping[key] end)
       |> Enum.map(fn
-        {participant_key, participants} when participant_key in [:publishers, :atendees] ->
+        {participant_key, participants} when participant_key in [:publishers, :attendees] ->
           {participant_key, Enum.map(participants, &ParticipantInfo.from_response/1)}
 
         other ->
