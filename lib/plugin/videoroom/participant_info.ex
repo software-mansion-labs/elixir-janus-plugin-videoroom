@@ -3,19 +3,19 @@ defmodule Janus.Plugin.VideoRoom.ParticipantInfo do
   Struct holding info about Participants.
 
   Contains following fields:
-  - `id` - unique ID of a publisher
-  - `display` - display name of active publisher, if any
-  - `audio_codec` - audio codec used by a publisher, if any
-  - `video_codec` - video codec used by a publisher, if any
-  - `simulcast` - `true` if the publisher uses simulcast (VP8 and H.264 only)
-  - `talking` - boolean indicating whether the publisher is talking or not (present only if the room is configured to measure audio levels)
+  - `:id` - unique ID of a publisher
+  - `:display_name` - display name of active publisher, if any
+  - `:audio_codec` - audio codec used by a publisher, if any
+  - `:video_codec` - video codec used by a publisher, if any
+  - `:simulcasting?` - `true` if the publisher uses simulcast (VP8 and H.264 only)
+  - `:talking?` - boolean indicating whether the publisher is talking or not (present only if the room is configured to measure audio levels)
   """
   @type t() :: %__MODULE__{
           id: String.t(),
           display_name: String.t(),
           video_codec: String.t(),
           audio_codec: String.t(),
-          using_simulcast?: boolean(),
+          simulcasting?: boolean(),
           talking?: boolean()
         }
 
@@ -27,12 +27,19 @@ defmodule Janus.Plugin.VideoRoom.ParticipantInfo do
     "display" => :display_name,
     "video_codec" => :video_codec,
     "audio_codec" => :audio_codec,
-    "simulcast" => :using_simulcast?,
+    "simulcast" => :simulcasting?,
     "talking" => :talking?
   }
 
   @enforce_keys :id
-  defstruct [:id, :display_name, :video_codec, :audio_codec, :using_simulcast?, :talking?]
+  defstruct [
+    :id,
+    :display_name,
+    :video_codec,
+    :audio_codec,
+    simulcasting?: false,
+    talking?: false
+  ]
 
   @spec from_response(map()) :: t()
   def from_response(response) do
