@@ -4,7 +4,6 @@ defmodule Janus.Plugin.VideoRoom.IntegrationTest do
   alias Janus.{Connection, Session}
   alias Janus.Plugin.VideoRoom
   alias Janus.Plugin.VideoRoom.TestFixtures
-  alias Janus.Transport.WS
 
   @moduletag :integration
   @moduletag capture_log: true
@@ -18,8 +17,8 @@ defmodule Janus.Plugin.VideoRoom.IntegrationTest do
   setup_all do
     {:ok, connection} =
       Connection.start_link(
-        WS,
-        {"ws://localhost:8188", WS.Adapters.WebSockex, [timeout: 5000]},
+        Application.fetch_env!(:elixir_janus_plugin_videoroom, :transport),
+        Application.fetch_env!(:elixir_janus_plugin_videoroom, :transport_opts),
         Handler,
         {},
         []
