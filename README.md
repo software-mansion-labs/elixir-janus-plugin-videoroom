@@ -5,6 +5,7 @@ This package implements functionality to communicate with [Janus VideoRoom plugi
 It takes advantage of transport layer provided by another package [Elixir Janus](https://github.com/software-mansion-labs/elixir-janus).
 
 ## Disclaimer
+
 Package is experimental and is not yet released to hex.
 
 ## Example
@@ -16,7 +17,7 @@ iex> alias Janus.Transport.WS
 iex> alias Janus.Plugin.VideoRoom
 iex> {:ok, connection} = Connection.start_link(WS, {"ws://gateway-domain:8188", WS.Adapters.WebSockex, []}, CustomHandler, {}, [])
 iex> {:ok, session} = Session.start_link(connection)
-iex> {:ok, room_id} = VideoRoom.create_room(session, "room id", %CreateRoomProperties{description: "test videoroom"}, "some admin key", "some room secret")
+iex> {:ok, room_id} = VideoRoom.create(session, "room id", %CreateRoomProperties{description: "test videoroom"}, "some admin key", "some room secret")
 ```
 
 ## Installation
@@ -27,6 +28,23 @@ def deps do
     {:elixir_janus_plugin_videoroom, github: "software-mansion-labs/elixir-janus-plugin-videoroom"}
   ]
 end
+```
+
+## Testing
+
+By default, the tests contacting Janus Gateway are disabled. To run them, use `mix test --include integration`
+
+To run the instance for tests you can use Docker image:
+
+```bash
+# When running for the first time
+git clone https://github.com/software-mansion-labs/docker-janus.git
+cd docker-janus
+git checkout v0.10.3
+docker build -t swmansion/janus:0.10.3-0 0.10.3
+
+# When the image is tagged
+docker run --rm -e GATEWAY_IP=127.0.0.1 -e WEBSOCKETS_ENABLED=true -e RTP_PORT_RANGE=10000-10099 -p 8188:8188 -p 10000-10099:10000-10099/udp -ti swmansion/janus:0.10.3-0
 ```
 
 ## Copyright and License
