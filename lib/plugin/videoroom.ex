@@ -139,6 +139,25 @@ defmodule Janus.Plugin.VideoRoom do
   end
 
   @doc """
+  Same as `destroy/4` but make an async request.
+  """
+  @spec async_destroy(Janus.Session.t(), room_id, Session.plugin_handle_id(), room_secret) ::
+          :ok | {:error, any}
+  def async_destroy(session, room_id, handle_id, room_secret \\ nil) do
+    message =
+      %{room: room_id, request: "destroy"}
+      |> put_if_not_nil(@room_secret_key, room_secret)
+      |> new_janus_message(handle_id)
+
+    with :ok <-
+           Session.execute_async_request(session, message) do
+      :ok
+    else
+      error -> Errors.handle(error)
+    end
+  end
+
+  @doc """
   Sends request to check if given room exists.
 
   ## Arguments
