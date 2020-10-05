@@ -29,7 +29,7 @@ defmodule Janus.Plugin.VideoRoom.IntegrationTest do
   end
 
   test "happy path", %{session: session} do
-    assert {:ok, pub_handle} = VideoRoom.attach(session)
+    assert {:ok, pub_handle} = VideoRoom.new_handle(session)
     properties = %VideoRoom.CreateRoomProperties{}
 
     VideoRoom.destroy(session, @test_room_id, pub_handle)
@@ -56,7 +56,7 @@ defmodule Janus.Plugin.VideoRoom.IntegrationTest do
     publisher_reconfig = %VideoRoom.PublisherConfig{display_name: "Pub1", relay_data?: false}
     assert :ok = VideoRoom.configure_publisher(session, publisher_reconfig, pub_handle)
 
-    assert {:ok, sub_handle} = VideoRoom.attach(session)
+    assert {:ok, sub_handle} = VideoRoom.new_handle(session)
     assert {:ok, [publisher]} = VideoRoom.list_participants(session, @test_room_id, sub_handle)
     assert publisher.id == publisher_id
     assert publisher.display_name == publisher_reconfig.display_name
@@ -74,10 +74,12 @@ defmodule Janus.Plugin.VideoRoom.IntegrationTest do
     assert :ok = VideoRoom.leave(session, sub_handle)
     assert :ok = VideoRoom.unpublish(session, pub_handle)
     assert :ok = VideoRoom.leave(session, pub_handle)
+    assert :ok = VideoRoom.destroy_handle(session, pub_handle)
+    assert :ok = VideoRoom.destroy_handle(session, sub_handle)
   end
 
   test "Publish without join", %{session: session} do
-    assert {:ok, pub_handle} = VideoRoom.attach(session)
+    assert {:ok, pub_handle} = VideoRoom.new_handle(session)
     properties = %VideoRoom.CreateRoomProperties{}
 
     VideoRoom.destroy(session, @test_room_id, pub_handle)

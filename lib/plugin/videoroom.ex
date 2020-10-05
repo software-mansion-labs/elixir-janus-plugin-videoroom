@@ -32,15 +32,28 @@ defmodule Janus.Plugin.VideoRoom do
   @type audio_codec :: :opus | :g722 | :pcmu | :pcma | :isac32 | :isac16
   @type video_codec :: :vp8 | :vp9 | :h264 | :av1 | :h265
 
-  @spec attach(Session.t(), Session.timeout_t()) ::
-          {:error, any} | {:ok, Session.plugin_handle_id()}
   @doc """
   Attaches to a videoroom plugin, creating a new handle
 
   Simple wrapper over `#{inspect(Session)}.session_attach/3`
   """
-  def attach(session, timeout \\ 5000) do
+  @spec new_handle(Session.t(), Session.timeout_t()) ::
+          {:error, any} | {:ok, Session.plugin_handle_id()}
+  def new_handle(session, timeout \\ 5000) do
     Session.session_attach(session, "janus.plugin.videoroom", timeout)
+  end
+
+  @doc """
+  Destroys a handle to a videoroom plugin
+  """
+  @spec destroy_handle(Session.t(), Session.plugin_handle_id()) ::
+          {:error, any} | :ok
+  def destroy_handle(session, handle_id) do
+    message = %{janus: "detach", handle_id: handle_id}
+
+    with {:ok, nil} <- Session.execute_request(session, message) do
+      :ok
+    end
   end
 
   @doc """
