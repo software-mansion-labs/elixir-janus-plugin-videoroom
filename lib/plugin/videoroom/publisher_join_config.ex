@@ -4,7 +4,7 @@ defmodule Janus.Plugin.VideoRoom.PublisherJoinConfig do
 
   Contains following fields:
   - `:room` - unique ID of the room to join; required,
-  - `:id` - unique ID to register for the publisher; optional, will be chosen by the plugin if missing,
+  - `:publisher_id` - unique ID to register for the publisher; optional, will be chosen by the plugin if missing,
   - `:display_name` - display name for the publisher; optional,
   - `:token` - invitation token, in case the room has an ACL; optional
   """
@@ -13,9 +13,9 @@ defmodule Janus.Plugin.VideoRoom.PublisherJoinConfig do
 
   @type t() :: %__MODULE__{
           room_id: VideoRoom.room_id(),
-          publisher_id: String.t(),
-          display_name: String.t(),
-          token: String.t()
+          publisher_id: String.t() | nil,
+          display_name: String.t() | nil,
+          token: String.t() | nil
         }
 
   @enforce_keys [:room_id]
