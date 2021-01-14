@@ -9,6 +9,10 @@ defmodule Janus.Plugin.VideoRoom.IntegrationTest do
   @moduletag capture_log: true
 
   @test_room_id 4242
+  @plugin_admin_key Application.fetch_env!(
+                      :elixir_janus_plugin_videoroom,
+                      :janus_plugin_admin_key
+                    )
 
   defmodule Handler do
     use Janus.Handler
@@ -34,7 +38,8 @@ defmodule Janus.Plugin.VideoRoom.IntegrationTest do
 
     VideoRoom.destroy(session, @test_room_id, pub_handle)
 
-    assert {:ok, @test_room_id} = VideoRoom.create(session, @test_room_id, properties, pub_handle)
+    assert {:ok, @test_room_id} =
+             VideoRoom.create(session, @test_room_id, properties, pub_handle, @plugin_admin_key)
 
     join_config = %VideoRoom.PublisherJoinConfig{
       room_id: @test_room_id
@@ -84,12 +89,31 @@ defmodule Janus.Plugin.VideoRoom.IntegrationTest do
 
     VideoRoom.destroy(session, @test_room_id, pub_handle)
 
-    assert {:ok, @test_room_id} = VideoRoom.create(session, @test_room_id, properties, pub_handle)
+    assert {:ok, @test_room_id} =
+             VideoRoom.create(session, @test_room_id, properties, pub_handle, @plugin_admin_key)
 
     publisher_config = %VideoRoom.PublisherConfig{display_name: "pub1"}
 
     # premature publish
     assert {:error, {:janus_videoroom_error_join_first, 424, _description}} =
              VideoRoom.publish(session, publisher_config, pub_handle, TestFixtures.sdp_offer())
+  end
+
+  @tag :focus
+  test "record happy path", %{session: session} do
+    assert {:ok, pub_handle} = VideoRoom.new_handle(session)
+    properties = %VideoRoom.CreateRoomProperties{}
+
+    VideoRoom.destroy(session, @test_room_id, pub_handle)
+
+    assert {:ok, @test_room_id} =
+             VideoRoom.create(session, @test_room_id, properties, pub_handle, @plugin_admin_key)
+
+    join_config = %VideoRoom.PublisherJoinConfig{
+      room_id: @test_room_id
+    }
+
+    assert :ok = VideoRoom.enable_recording(session, @test_room_id, true, pub_handle)
+    assert :ok = VideoRoom.enable_recording(session, @test_room_id, false, pub_handle)
   end
 end

@@ -64,6 +64,32 @@ defmodule Janus.Plugin.VideoRoomTest do
     )
   end
 
+  describe "enable_recording/5 sends a request through connection and" do
+    test "returns ok atom on success" do
+      with_mock Janus.Session,
+        execute_request: fn _, message ->
+          assert message[:body][:room] == @room_name
+          assert message[:handle_id] == @handle_id
+          assert message[:body][:request] == "enable_recording"
+          {:ok, %{"videoroom" => "success", "record" => message[:body][:record]}}
+        end do
+        assert :ok = VideoRoom.enable_recording(Janus.Session, @room_name, true, @handle_id, nil)
+        assert :ok = VideoRoom.enable_recording(Janus.Session, @room_name, false, @handle_id, nil)
+      end
+    end
+
+    test_videoroom_plugin_error(
+      :janus_videoroom_error_no_such_room,
+      &VideoRoom.enable_recording/5,
+      [Janus.Session, @room_name, true, @handle_id, nil]
+    )
+
+    test_session_error_propagation(
+      &VideoRoom.enable_recording/5,
+      [Janus.Session, @room_name, true, @handle_id, nil]
+    )
+  end
+
   describe "destroy/4 sends destroy room request through connection and" do
     test "returns ok tuple with room id on success" do
       with_mock Janus.Session,
