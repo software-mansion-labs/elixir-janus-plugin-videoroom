@@ -246,6 +246,8 @@ defmodule Janus.Plugin.VideoRoomTest do
         end do
         assert {:ok, participants} =
                  VideoRoom.list_participants(Janus.Session, @room_name, @handle_id)
+
+        assert is_list(participants)
       end
     end
 
