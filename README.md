@@ -37,14 +37,7 @@ By default, the tests contacting Janus Gateway are disabled. To run them, use `m
 To run the instance for tests you can use Docker image:
 
 ```bash
-# When running for the first time
-git clone https://github.com/software-mansion-labs/docker-janus.git
-cd docker-janus
-git checkout v0.10.3
-docker build -t swmansion/janus:0.10.3-0 0.10.3
-
-# When the image is tagged
-docker run --rm -e GATEWAY_IP=127.0.0.1 -e WEBSOCKETS_ENABLED=true -e RTP_PORT_RANGE=10000-10099 -p 8188:8188 -p 10000-10099:10000-10099/udp -ti swmansion/janus:0.10.3-0
+docker run --rm -e GATEWAY_IP=127.0.0.1 -e WEBSOCKETS_ENABLED=true -e RTP_PORT_RANGE=10000-10099 -p 8188:8188 -p 10000-10099:10000-10099/udp -ti swmansion/janus-gateway:0.10.3-4
 ```
 
 ## Copyright and License
