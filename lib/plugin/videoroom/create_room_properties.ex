@@ -66,7 +66,7 @@ defmodule Janus.Plugin.VideoRoom.CreateRoomProperties do
           playoutdelay_ext: boolean() | nil,
           transport_wide_cc_ext: boolean() | nil,
           record: boolean() | nil,
-          rec_dir: boolean() | nil,
+          rec_dir: Path.t() | nil,
           lock_record: boolean() | nil,
           notify_joining: boolean() | nil,
           require_e2ee: boolean() | nil
