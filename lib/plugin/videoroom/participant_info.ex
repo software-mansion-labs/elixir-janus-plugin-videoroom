@@ -15,6 +15,7 @@ defmodule Janus.Plugin.VideoRoom.ParticipantInfo do
           display_name: String.t(),
           video_codec: String.t(),
           audio_codec: String.t(),
+          active_publisher?: boolean(),
           simulcasting?: boolean(),
           talking?: boolean()
         }
@@ -27,6 +28,7 @@ defmodule Janus.Plugin.VideoRoom.ParticipantInfo do
     "display" => :display_name,
     "video_codec" => :video_codec,
     "audio_codec" => :audio_codec,
+    "publisher" => :active_publisher?,
     "simulcast" => :simulcasting?,
     "talking" => :talking?
   }
@@ -37,6 +39,7 @@ defmodule Janus.Plugin.VideoRoom.ParticipantInfo do
     :display_name,
     :video_codec,
     :audio_codec,
+    :active_publisher?,
     simulcasting?: false,
     talking?: false
   ]
