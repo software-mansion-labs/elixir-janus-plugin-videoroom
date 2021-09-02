@@ -374,7 +374,7 @@ defmodule Janus.Plugin.VideoRoom do
   """
   @spec publish(Session.t(), PublisherConfig.t(), Session.plugin_handle_id(), sdp_offer :: sdp()) ::
           {:error, any} | {:ok, sdp_answer :: sdp()}
-  def publish(session, %PublisherConfig{} = config, handle_id, sdp_offer) do
+  def publish(session, %PublisherConfig{} = config, handle_id, sdp_offer, trickle? \\ true) do
     message =
       config
       |> PublisherConfig.to_janus_message()
@@ -382,6 +382,8 @@ defmodule Janus.Plugin.VideoRoom do
       |> Map.delete(:request_keyframe?)
       |> new_janus_message(handle_id)
       |> Map.put(:jsep, %{type: "offer", sdp: sdp_offer})
+
+    message = if not trickle?, do: put_in(message, [:jsep, :trickle], false), else: message
 
     with {:ok,
           %{
@@ -483,11 +485,13 @@ defmodule Janus.Plugin.VideoRoom do
   """
   @spec start_subscription(Session.t(), sdp_answer :: sdp(), Session.plugin_handle_id()) ::
           :ok | {:error, any}
-  def start_subscription(session, sdp_answer, handle_id) do
+  def start_subscription(session, sdp_answer, handle_id, trickle? \\ false) do
     message =
       %{request: "start"}
       |> new_janus_message(handle_id)
       |> Map.put(:jsep, %{type: "answer", sdp: sdp_answer})
+
+    if not trickle?, do: put_in(message, [:jsep, :trickle], false), else: message
 
     with {:ok,
           %{
