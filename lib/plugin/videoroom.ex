@@ -159,6 +159,31 @@ defmodule Janus.Plugin.VideoRoom do
   defp join_codecs(list), do: Enum.join(list, ",")
 
   @doc """
+  Sets a global recording setting for a room
+  """
+  @spec enable_recording(
+          Session.t(),
+          room_id(),
+          enabled? :: boolean(),
+          Session.plugin_handle_id(),
+          room_secret()
+        ) ::
+          :ok | {:error, any}
+  def enable_recording(session, room_id, enabled?, handle_id, room_secret \\ nil) do
+    message =
+      %{request: "enable_recording", room: room_id, record: enabled?}
+      |> put_if_not_nil(@room_secret_key, room_secret)
+      |> new_janus_message(handle_id)
+
+    with {:ok, %{"videoroom" => "success", "record" => ^enabled?}} <-
+           Session.execute_request(session, message) do
+      :ok
+    else
+      error -> Errors.handle(error)
+    end
+  end
+
+  @doc """
   Destroys the given room.
 
   ## Arguments
@@ -450,7 +475,6 @@ defmodule Janus.Plugin.VideoRoom do
   # TODO: "rtp_forward"
   # TODO: "stop_rtp_forward"
   # TODO: "listforwarders"
-  # TODO: "enable_recording"
 
   @doc """
   Starts a subscription to the configured publisher using the provided handle.

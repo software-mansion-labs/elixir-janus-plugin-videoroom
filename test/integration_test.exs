@@ -9,6 +9,10 @@ defmodule Janus.Plugin.VideoRoom.IntegrationTest do
   @moduletag capture_log: true
 
   @test_room_id 4242
+  @plugin_admin_key Application.fetch_env!(
+                      :elixir_janus_plugin_videoroom,
+                      :janus_plugin_admin_key
+                    )
 
   defmodule Handler do
     use Janus.Handler
@@ -28,13 +32,25 @@ defmodule Janus.Plugin.VideoRoom.IntegrationTest do
     [session: session]
   end
 
-  test "happy path", %{session: session} do
-    assert {:ok, pub_handle} = VideoRoom.new_handle(session)
+  setup %{session: session} do
+    {:ok, handle} = VideoRoom.new_handle(session)
+    VideoRoom.destroy(session, @test_room_id, handle)
+
     properties = %VideoRoom.CreateRoomProperties{}
 
-    VideoRoom.destroy(session, @test_room_id, pub_handle)
+    assert {:ok, @test_room_id} =
+             VideoRoom.create(session, @test_room_id, properties, handle, @plugin_admin_key)
 
-    assert {:ok, @test_room_id} = VideoRoom.create(session, @test_room_id, properties, pub_handle)
+    on_exit(fn ->
+      VideoRoom.destroy(session, @test_room_id, handle)
+      VideoRoom.destroy_handle(session, handle)
+    end)
+
+    [admin_handle: handle]
+  end
+
+  test "happy path", %{session: session} do
+    assert {:ok, pub_handle} = VideoRoom.new_handle(session)
 
     join_config = %VideoRoom.PublisherJoinConfig{
       room_id: @test_room_id
@@ -48,7 +64,7 @@ defmodule Janus.Plugin.VideoRoom.IntegrationTest do
 
     publisher_config = %VideoRoom.PublisherConfig{display_name: "pub1"}
 
-    assert {:ok, sdp_answer} =
+    assert {:ok, _sdp_answer} =
              VideoRoom.publish(session, publisher_config, pub_handle, TestFixtures.sdp_offer())
 
     assert :ok = VideoRoom.end_of_candidates(session, pub_handle)
@@ -80,16 +96,17 @@ defmodule Janus.Plugin.VideoRoom.IntegrationTest do
 
   test "Publish without join", %{session: session} do
     assert {:ok, pub_handle} = VideoRoom.new_handle(session)
-    properties = %VideoRoom.CreateRoomProperties{}
-
-    VideoRoom.destroy(session, @test_room_id, pub_handle)
-
-    assert {:ok, @test_room_id} = VideoRoom.create(session, @test_room_id, properties, pub_handle)
-
     publisher_config = %VideoRoom.PublisherConfig{display_name: "pub1"}
 
     # premature publish
     assert {:error, {:janus_videoroom_error_join_first, 424, _description}} =
              VideoRoom.publish(session, publisher_config, pub_handle, TestFixtures.sdp_offer())
+
+    assert :ok = VideoRoom.destroy_handle(session, pub_handle)
+  end
+
+  test "record happy path", %{session: session, admin_handle: handle} do
+    assert :ok = VideoRoom.enable_recording(session, @test_room_id, true, handle)
+    assert :ok = VideoRoom.enable_recording(session, @test_room_id, false, handle)
   end
 end
