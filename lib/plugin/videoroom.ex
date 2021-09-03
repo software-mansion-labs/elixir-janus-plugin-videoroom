@@ -520,13 +520,13 @@ defmodule Janus.Plugin.VideoRoom do
           trickle? :: boolean()
         ) ::
           :ok | {:error, any}
-  def start_subscription(session, sdp_answer, handle_id, trickle? \\ false) do
+  def start_subscription(session, sdp_answer, handle_id, trickle? \\ true) do
     message =
       %{request: "start"}
       |> new_janus_message(handle_id)
       |> Map.put(:jsep, %{type: "answer", sdp: sdp_answer})
 
-    if not trickle?, do: put_in(message, [:jsep, :trickle], false), else: message
+    message = if not trickle?, do: put_in(message, [:jsep, :trickle], false), else: message
 
     with {:ok,
           %{
