@@ -397,7 +397,13 @@ defmodule Janus.Plugin.VideoRoom do
   @doc """
   Starts publishing to the room. Requires sdp offer, returns sdp answer.
   """
-  @spec publish(Session.t(), PublisherConfig.t(), Session.plugin_handle_id(), sdp_offer :: sdp()) ::
+  @spec publish(
+          Session.t(),
+          PublisherConfig.t(),
+          Session.plugin_handle_id(),
+          sdp_offer :: sdp(),
+          trickle? :: boolean()
+        ) ::
           {:error, any} | {:ok, sdp_answer :: sdp()}
   def publish(session, %PublisherConfig{} = config, handle_id, sdp_offer, trickle? \\ true) do
     message =
@@ -507,7 +513,12 @@ defmodule Janus.Plugin.VideoRoom do
   @doc """
   Provides an SDP answer to Janus and allows the media to flow
   """
-  @spec start_subscription(Session.t(), sdp_answer :: sdp(), Session.plugin_handle_id()) ::
+  @spec start_subscription(
+          Session.t(),
+          sdp_answer :: sdp(),
+          Session.plugin_handle_id(),
+          trickle? :: boolean()
+        ) ::
           :ok | {:error, any}
   def start_subscription(session, sdp_answer, handle_id, trickle? \\ false) do
     message =
