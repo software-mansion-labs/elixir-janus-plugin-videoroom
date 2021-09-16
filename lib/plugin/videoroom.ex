@@ -412,9 +412,7 @@ defmodule Janus.Plugin.VideoRoom do
       |> Map.put(:request, "publish")
       |> Map.delete(:request_keyframe?)
       |> new_janus_message(handle_id)
-      |> Map.put(:jsep, %{type: "offer", sdp: sdp_offer})
-
-    message = if not trickle?, do: put_in(message, [:jsep, :trickle], false), else: message
+      |> Map.put(:jsep, %{type: "offer", sdp: sdp_offer, trickle: trickle?})
 
     with {:ok,
           %{
@@ -524,9 +522,7 @@ defmodule Janus.Plugin.VideoRoom do
     message =
       %{request: "start"}
       |> new_janus_message(handle_id)
-      |> Map.put(:jsep, %{type: "answer", sdp: sdp_answer})
-
-    message = if not trickle?, do: put_in(message, [:jsep, :trickle], false), else: message
+      |> Map.put(:jsep, %{type: "answer", sdp: sdp_answer, trickle: trickle?})
 
     with {:ok,
           %{
