@@ -397,16 +397,22 @@ defmodule Janus.Plugin.VideoRoom do
   @doc """
   Starts publishing to the room. Requires sdp offer, returns sdp answer.
   """
-  @spec publish(Session.t(), PublisherConfig.t(), Session.plugin_handle_id(), sdp_offer :: sdp()) ::
+  @spec publish(
+          Session.t(),
+          PublisherConfig.t(),
+          Session.plugin_handle_id(),
+          sdp_offer :: sdp(),
+          trickle? :: boolean()
+        ) ::
           {:error, any} | {:ok, sdp_answer :: sdp()}
-  def publish(session, %PublisherConfig{} = config, handle_id, sdp_offer) do
+  def publish(session, %PublisherConfig{} = config, handle_id, sdp_offer, trickle? \\ true) do
     message =
       config
       |> PublisherConfig.to_janus_message()
       |> Map.put(:request, "publish")
       |> Map.delete(:request_keyframe?)
       |> new_janus_message(handle_id)
-      |> Map.put(:jsep, %{type: "offer", sdp: sdp_offer})
+      |> Map.put(:jsep, %{type: "offer", sdp: sdp_offer, trickle: trickle?})
 
     with {:ok,
           %{
@@ -505,13 +511,18 @@ defmodule Janus.Plugin.VideoRoom do
   @doc """
   Provides an SDP answer to Janus and allows the media to flow
   """
-  @spec start_subscription(Session.t(), sdp_answer :: sdp(), Session.plugin_handle_id()) ::
+  @spec start_subscription(
+          Session.t(),
+          sdp_answer :: sdp(),
+          Session.plugin_handle_id(),
+          trickle? :: boolean()
+        ) ::
           :ok | {:error, any}
-  def start_subscription(session, sdp_answer, handle_id) do
+  def start_subscription(session, sdp_answer, handle_id, trickle? \\ true) do
     message =
       %{request: "start"}
       |> new_janus_message(handle_id)
-      |> Map.put(:jsep, %{type: "answer", sdp: sdp_answer})
+      |> Map.put(:jsep, %{type: "answer", sdp: sdp_answer, trickle: trickle?})
 
     with {:ok,
           %{
